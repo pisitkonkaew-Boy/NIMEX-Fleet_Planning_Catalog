@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet Planning Catalog</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+/* ══════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════ */
+:root {
+  /* surfaces */
+  --bg:    #f0f3f8;
+  --sf:    #ffffff;
+  --sf2:   #f5f7fb;
+  --sf3:   #eaeff6;
+
+  /* borders */
+  --ln:    #dde3ed;
+  --ln2:   #c5cedd;
+
+  /* text */
+  --t1: #18243a; --t2: #3d5269; --t3: #7d92a8;
+
+  /* brand */
+  --br:    #1a56db;
+  --br-dk: #1240ab;
+  --br-lt: #e5edff;
+  --br-md: #5b8df0;
+
+  /* AB — orange */
+  --ab:    #d4600a;
+  --ab-dk: #a64807;
+  --ab-lt: #fff1e6;
+  --ab-md: #f07a30;
+  --ab-grd:linear-gradient(135deg,#d4600a,#f07a30);
+
+  /* CC — deep blue */
+  --cc:    #0d47a1;
+  --cc-dk: #082f6e;
+  --cc-lt: #e3eeff;
+  --cc-md: #3a7bd5;
+  --cc-grd:linear-gradient(135deg,#0d47a1,#1976d2);
+
+  /* semantic */
+  --ok:    #1a9e5f; --ok-lt:#e6f7ef; --ok-dk:#137a48;
+  --rd:    #d0362a; --rd-lt:#fde8e6;
+
+  --r:10px; --r-lg:14px; --r-xl:20px;
+  --sh:   0 1px 4px rgba(18,36,58,.07),0 1px 2px rgba(18,36,58,.04);
+  --sh-md:0 4px 18px rgba(18,36,58,.10),0 2px 4px rgba(18,36,58,.06);
+  --sh-lg:0 10px 36px rgba(18,36,58,.13),0 3px 8px rgba(18,36,58,.07);
+}
+
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Sarabun','Noto Sans Thai',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+input[type=file]{display:none}
+button,label,select{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--sf3)}
+::-webkit-scrollbar-thumb{background:var(--ln2);border-radius:3px}
+
+/* ══════════════════════════════════════════
+   HEADER  — AUTOMOTIVE DARK THEME
+══════════════════════════════════════════ */
+.hdr{
+  background:linear-gradient(135deg,#0f1c2e 0%,#1a2d47 50%,#0f1c2e 100%);
+  border-bottom:2px solid #d4600a;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 4px 20px rgba(0,0,0,.4),0 0 0 1px rgba(212,96,10,.15);
+}
+/* racing stripe */
+.hdr::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#d4600a 0%,#f07a30 30%,#1a56db 70%,#0d47a1 100%);
+}
+.hdr-in{max-width:1440px;margin:0 auto;padding:0 24px;display:flex;align-items:stretch;min-height:58px;position:relative}
+
+/* brand logo */
+.brand{display:flex;align-items:center;gap:12px;padding-right:22px;border-right:1px solid rgba(255,255,255,.1);margin-right:8px}
+.brand-logo{position:relative;width:38px;height:38px;flex-shrink:0}
+.brand-logo svg{width:38px;height:38px}
+.brand-t1{font-size:15px;font-weight:800;color:#fff;letter-spacing:.04em;text-transform:uppercase}
+.brand-t2{font-size:9px;font-weight:600;color:rgba(255,255,255,.45);letter-spacing:.14em;text-transform:uppercase;margin-top:1px}
+
+/* nav */
+.nav{display:flex;align-items:stretch;flex:1}
+.nbtn{display:flex;align-items:center;gap:7px;padding:0 18px;border:none;background:none;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.nbtn:hover{color:#fff;background:rgba(255,255,255,.06)}
+.nbtn.on{color:#fff;border-bottom-color:#d4600a;background:rgba(212,96,10,.12)}
+.nbtn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* header actions */
+.hdr-right{display:flex;align-items:center;gap:8px;margin-left:auto;padding-left:16px}
+.hbtn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);font-size:12px;font-weight:600;white-space:nowrap;transition:all .14s}
+.hbtn:hover{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.35)}
+.hbtn.pri{background:var(--ab);border-color:var(--ab-dk);color:#fff;box-shadow:0 2px 8px rgba(212,96,10,.4)}
+.hbtn.pri:hover{background:var(--ab-dk)}
+.hbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.lbar{display:none;height:3px;background:linear-gradient(90deg,#d4600a,#f07a30,#1a56db,#d4600a);background-size:300%;animation:lb .9s linear infinite}
+.lbar.on{display:block}
+@keyframes lb{0%{background-position:300%}100%{background-position:-300%}}
+
+/* ══════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════ */
+.wrap{max-width:1440px;margin:0 auto;padding:24px}
+.page{display:none}.page.on{display:block}
+
+/* ══════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════ */
+.empty{text-align:center;padding:72px 24px;background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-xl);box-shadow:var(--sh)}
+.empty-ico{font-size:52px;margin-bottom:14px;display:block}
+.empty-title{font-size:22px;font-weight:800;color:var(--t1);margin-bottom:8px}
+.empty-sub{font-size:14px;color:var(--t3);margin-bottom:28px}
+.dzone{display:inline-flex;flex-direction:column;align-items:center;gap:8px;max-width:420px;width:100%;border:2px dashed var(--br-md);border-radius:var(--r-lg);padding:28px 24px;background:var(--br-lt);transition:all .15s;cursor:pointer}
+.dzone:hover{background:#d5e3ff;border-color:var(--br)}
+.dzone-t{font-size:14px;font-weight:700;color:var(--br)}
+.dzone-s{font-size:11px;color:var(--t3)}
+
+/* ══════════════════════════════════════════
+   DASHBOARD — KPI
+══════════════════════════════════════════ */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-lg);padding:20px;position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s;cursor:default}
+.kpi:hover{box-shadow:var(--sh-md);transform:translateY(-1px)}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.kpi-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.kpi-tag{font-size:10px;font-weight:700;letter-spacing:.07em;padding:3px 9px;border-radius:99px;text-transform:uppercase}
+.kpi-val{font-size:46px;font-weight:800;line-height:1;color:var(--t1);letter-spacing:-.02em}
+.kpi-lbl{font-size:13px;color:var(--t2);margin-top:6px;font-weight:600}
+.kpi-sub{font-size:11px;color:var(--t3);margin-top:3px}
+.kpi-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
+
+.k-total .kpi-ico{background:#e8eeff}.k-total .kpi-tag{background:#e8eeff;color:var(--br)}.k-total .kpi-bar{background:linear-gradient(90deg,var(--br),var(--br-md))}
+.k-ab .kpi-ico{background:var(--ab-lt)}.k-ab .kpi-tag{background:var(--ab-lt);color:var(--ab)}.k-ab .kpi-bar{background:var(--ab-grd)}
+.k-cc .kpi-ico{background:var(--cc-lt)}.k-cc .kpi-tag{background:var(--cc-lt);color:var(--cc)}.k-cc .kpi-bar{background:var(--cc-grd)}
+.k-ok .kpi-ico{background:var(--ok-lt)}.k-ok .kpi-tag{background:var(--ok-lt);color:var(--ok)}.k-ok .kpi-bar{background:linear-gradient(90deg,var(--ok-dk),var(--ok))}
+
+/* ══════════════════════════════════════════
+   DASHBOARD — CHARTS
+══════════════════════════════════════════ */
+.charts-row{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:20px}
+.ch-card{background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-lg);padding:20px;box-shadow:var(--sh)}
+.ch-hd{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.ch-hd svg{width:15px;height:15px;stroke:var(--br);fill:none;stroke-width:2}
+.bclist{display:flex;flex-direction:column;gap:10px}
+.bc-row{display:flex;align-items:center;gap:10px}
+.bc-lbl{font-size:12px;font-weight:600;color:var(--t2);width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.bc-track{flex:1;height:22px;background:var(--sf3);border-radius:6px;overflow:hidden}
+.bc-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:9px;transition:width .7s cubic-bezier(.4,0,.2,1);min-width:2px}
+.bc-fill span{font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.bc-num{font-size:11px;color:var(--t3);width:26px;text-align:right;flex-shrink:0}
+.donut-wrap{display:flex;align-items:center;gap:22px}
+.dleg{display:flex;flex-direction:column;gap:12px;flex:1}
+.dleg-row{display:flex;align-items:center;gap:8px}
+.dleg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dleg-name{font-size:13px;color:var(--t2);flex:1;font-weight:500}
+.dleg-val{font-size:14px;font-weight:800;color:var(--t1)}
+.dleg-pct{font-size:11px;color:var(--t3);min-width:30px;text-align:right}
+
+/* ══════════════════════════════════════════
+   DASHBOARD — TABLE
+══════════════════════════════════════════ */
+.tbl-card{background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh)}
+.dtbl{width:100%;border-collapse:collapse;font-size:13px}
+.dtbl th{background:var(--sf2);color:var(--t3);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 16px;text-align:left;border-bottom:1px solid var(--ln)}
+.dtbl td{padding:12px 16px;border-bottom:1px solid var(--sf3);color:var(--t1)}
+.dtbl tbody tr:last-child td{border:none}
+.dtbl tbody tr:hover td{background:var(--sf2)}
+.pip{display:inline-block;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:.04em}
+.pip-ab{background:var(--ab-lt);color:var(--ab)}.pip-cc{background:var(--cc-lt);color:var(--cc)}.pip-ot{background:var(--sf3);color:var(--t3)}
+.prog-cell{display:flex;align-items:center;gap:7px}
+.pmini{flex:1;height:5px;background:var(--sf3);border-radius:99px;overflow:hidden;min-width:50px}
+.pf{height:100%;border-radius:99px;background:var(--ok)}
+.ptxt{font-size:11px;color:var(--t3);white-space:nowrap}
+.tlink{color:var(--br);font-size:12px;font-weight:700;background:none;border:none;padding:0}
+.tlink:hover{text-decoration:underline}
+
+/* ══════════════════════════════════════════
+   FILTER BAR
+══════════════════════════════════════════ */
+.fbar{
+  background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-lg);
+  padding:12px 16px;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--sh)
+}
+.flbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);flex-shrink:0}
+.fbtn{padding:6px 14px;border-radius:99px;border:1.5px solid var(--ln2);background:none;font-size:12px;font-weight:600;color:var(--t2);transition:all .13s;flex-shrink:0}
+.fbtn:hover{border-color:var(--br-md);color:var(--br);background:var(--br-lt)}
+.fbtn.on{background:var(--br);border-color:var(--br);color:#fff}
+.fbtn.on-ab{background:var(--ab);border-color:var(--ab-dk);color:#fff}
+.fbtn.on-cc{background:var(--cc);border-color:var(--cc-dk);color:#fff}
+.fsep{width:1px;height:20px;background:var(--ln);margin:0 2px;flex-shrink:0}
+.fcnt{font-size:12px;color:var(--t3);margin-left:auto;flex-shrink:0}
+
+/* filter dropdown */
+.fsel{padding:6px 28px 6px 10px;border-radius:var(--r);border:1.5px solid var(--ln2);background:var(--sf);font-size:12px;font-weight:600;color:var(--t1);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237d92a8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;cursor:pointer;transition:all .13s;min-width:120px}
+.fsel:focus{outline:none;border-color:var(--br);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+
+/* plate dropdown */
+.plate-sel-wrap{position:relative;flex-shrink:0}
+.plate-sel-wrap::after{content:'→';position:absolute;right:-18px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--t3);pointer-events:none}
+.fsel-plate{min-width:160px}
+
+/* ══════════════════════════════════════════
+   CAR CARD
+══════════════════════════════════════════ */
+.car-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.car-card{background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s;box-shadow:var(--sh)}
+.car-card:hover{box-shadow:var(--sh-md);transform:translateY(-2px)}
+.car-card.card-ab{border-top:3px solid var(--ab)}.car-card.card-ab:hover{border-color:var(--ab)}
+.car-card.card-cc{border-top:3px solid var(--cc)}.car-card.card-cc:hover{border-color:var(--cc)}
+
+.cc-head{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between}
+.cc-plate{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--t1);letter-spacing:.05em}
+.cc-dc{font-size:11px;color:var(--t3);margin-top:2px}
+.cc-info{font-size:10px;color:var(--t3);margin-top:1px}
+.ctype{font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:.04em;flex-shrink:0;margin-top:2px;text-transform:uppercase}
+.ct-AB{background:var(--ab-lt);color:var(--ab);border:1px solid rgba(212,96,10,.2)}
+.ct-CC{background:var(--cc-lt);color:var(--cc);border:1px solid rgba(13,71,161,.2)}
+.ct-q{background:var(--sf3);color:var(--t3);border:1px solid var(--ln)}
+
+/* photo strip */
+.pstrip-wrap{position:relative;overflow:hidden;background:var(--ln);aspect-ratio:16/9}
+.pstrip{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);height:100%}
+.pstrip-cell{flex:0 0 100%;position:relative;overflow:hidden}
+.pstrip-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+.car-card:hover .pstrip-img{transform:scale(1.04)}
+.pstrip-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--sf2);color:var(--ln2);font-size:28px}
+.pstrip-lbl{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.62));color:rgba(255,255,255,.92);font-size:10px;font-weight:700;padding:14px 10px 6px;letter-spacing:.04em}
+.pstrip-arr{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;background:rgba(255,255,255,.88);backdrop-filter:blur(4px);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .12s;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.pstrip-arr:hover{background:#fff}
+.pstrip-arr svg{width:14px;height:14px;stroke:var(--t1);fill:none;stroke-width:2.5}
+.pstrip-prev{left:7px}.pstrip-next{right:7px}
+.pstrip-dots{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:2}
+.pdot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);transition:all .2s}
+.pdot.on{background:#fff;width:14px;border-radius:3px}
+
+.cc-foot{padding:10px 14px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--sf3)}
+.pmini2{display:flex;align-items:center;gap:7px;flex:1}
+.pmini2-track{flex:1;height:4px;background:var(--sf3);border-radius:99px;overflow:hidden}
+.pmini2-fill{height:100%;border-radius:99px;background:var(--ok)}
+.pmini2-txt{font-size:11px;color:var(--t3)}
+.cc-acts{display:flex;gap:6px}
+.ca{padding:5px 11px;border-radius:6px;border:1.5px solid;font-size:11px;font-weight:700;transition:all .13s;background:none}
+.ca-view{color:var(--br);border-color:var(--br-md)}.ca-view:hover{background:var(--br);color:#fff;border-color:var(--br)}
+.ca-ppt{color:var(--ok);border-color:#7ec8a0}.ca-ppt:hover{background:var(--ok);color:#fff;border-color:var(--ok)}
+
+/* ══════════════════════════════════════════
+   DETAIL VIEW
+══════════════════════════════════════════ */
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--br);font-size:13px;font-weight:700;background:none;border:none;padding:0;margin-bottom:18px}
+.back:hover{text-decoration:underline}
+.back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5}
+
+.vh{background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:20px;display:flex;align-items:flex-start;gap:22px;flex-wrap:wrap;box-shadow:var(--sh)}
+.vh.vh-ab{border-left:4px solid var(--ab)}.vh.vh-cc{border-left:4px solid var(--cc)}
+.vh-plate-wrap{display:flex;flex-direction:column;gap:8px}
+.vh-plate{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:var(--t1);background:var(--sf2);border:1.5px solid var(--ln2);border-radius:var(--r);padding:7px 18px;letter-spacing:.06em}
+.vh-meta{flex:1;min-width:180px}
+.vh-dc-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.vh-dc{font-size:15px;font-weight:700;color:var(--t1)}
+.vh-dc span{color:var(--br)}
+.vh-extra{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.meta-chip{display:inline-flex;align-items:center;gap:5px;background:var(--sf2);border:1px solid var(--ln);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--t2);font-weight:500}
+.meta-chip svg{width:12px;height:12px;stroke:var(--t3);fill:none;stroke-width:2}
+.vh-prog{min-width:180px}
+.vh-prog-top{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:6px}
+.vh-prog-top strong{font-size:13px;color:var(--t1)}
+.vh-prog-track{height:6px;background:var(--sf3);border-radius:99px;overflow:hidden}
+.vh-prog-fill{height:100%;border-radius:99px;background:var(--ok);transition:width .5s}
+.vh-prog-sub{font-size:10px;color:var(--t3);margin-top:3px;text-align:right}
+.vh-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.vbtn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .14s}
+.vbtn.pptx{background:var(--ok);color:#fff;box-shadow:0 2px 6px rgba(26,158,95,.28)}.vbtn.pptx:hover{background:var(--ok-dk)}
+.vbtn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.edit-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid var(--ln2);border-radius:var(--r);font-size:12px;font-weight:700;color:var(--t2);background:var(--sf);transition:all .13s}
+.edit-btn:hover{border-color:var(--br-md);color:var(--br);background:var(--br-lt)}
+.edit-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* photo detail */
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--ln)}
+.photo-wrap{background:var(--sf);border:1px solid var(--ln);border-radius:var(--r-lg);overflow:hidden;margin-bottom:24px;box-shadow:var(--sh)}
+.det-slider{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.det-slide{flex:0 0 25%;position:relative;aspect-ratio:4/3;overflow:hidden;border-right:1px solid var(--ln)}
+.det-slide:last-child{border-right:none}
+.det-slide img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;transition:transform .2s}
+.det-slide:hover img{transform:scale(1.04)}
+.det-empty{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--sf2);cursor:pointer;transition:background .14s}
+.det-empty:hover{background:var(--br-lt)}
+.det-empty-ico{font-size:28px;margin-bottom:6px;opacity:.4}
+.det-empty-lbl{font-size:11px;font-weight:600;color:var(--t3)}
+.det-empty-sub{font-size:9px;color:var(--t3);margin-top:2px}
+.ph-lbl-bar{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));color:rgba(255,255,255,.95);font-size:10px;font-weight:700;padding:16px 10px 7px;text-align:center;pointer-events:none}
+.ph-chk{position:absolute;top:7px;right:7px;width:20px;height:20px;background:var(--ok);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.ph-chk svg{width:10px;height:10px;stroke:#fff;fill:none;stroke-width:3}
+.ph-ov{position:absolute;inset:0;background:rgba(18,36,58,.5);display:flex;align-items:center;justify-content:center;gap:8px;opacity:0;transition:opacity .15s}
+.det-slide:hover .ph-ov{opacity:1}
+.ovb{background:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;color:var(--t1);font-family:inherit;transition:background .1s}
+.ovb:hover{background:var(--sf3)}
+.ovb.del{color:var(--rd)}
+.sl-arr{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;background:rgba(255,255,255,.9);backdrop-filter:blur(4px);border:none;border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:2;box-shadow:var(--sh-md)}
+.sl-arr svg{width:14px;height:14px;stroke:var(--t1);fill:none;stroke-width:2.5}
+.sl-prev{left:8px}.sl-next{right:8px}
+@media(max-width:760px){.det-slide{flex:0 0 100%}.sl-arr{display:flex}}
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(18,36,58,.5);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.on{display:flex}
+.modal{background:var(--sf);border-radius:var(--r-xl);box-shadow:var(--sh-lg);padding:28px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;border-top:3px solid var(--br)}
+.modal-title{font-size:16px;font-weight:800;color:var(--t1);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.modal-title svg{width:18px;height:18px;stroke:var(--br);fill:none;stroke-width:2}
+.fg{margin-bottom:16px}
+.fg label{font-size:11px;font-weight:700;color:var(--t2);margin-bottom:6px;display:block;letter-spacing:.04em;text-transform:uppercase}
+.fi{width:100%;padding:9px 12px;border:1.5px solid var(--ln2);border-radius:var(--r);font-size:14px;font-family:inherit;color:var(--t1);background:var(--sf);transition:border-color .14s;outline:none}
+.fi:focus{border-color:var(--br);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.fi.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.05em}
+.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--ln)}
+.mbtn{padding:9px 20px;border-radius:var(--r);border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .14s;font-family:inherit}
+.mbtn.ok{background:var(--br);color:#fff}.mbtn.ok:hover{background:var(--br-dk)}
+.mbtn.cancel{background:var(--sf3);color:var(--t2);border:1px solid var(--ln2)}.mbtn.cancel:hover{background:var(--ln)}
+
+/* ══════════════════════════════════════════
+   LIGHTBOX
+══════════════════════════════════════════ */
+.lb{display:none;position:fixed;inset:0;background:rgba(8,14,24,.94);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.lb.on{display:flex}
+.lb-img{max-width:90vw;max-height:86vh;border-radius:var(--r);box-shadow:var(--sh-lg)}
+.lb-cap{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:12px;font-weight:600;padding:5px 16px;border-radius:99px}
+.lb-x{position:absolute;top:18px;right:22px;background:rgba(255,255,255,.12);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.lb-x:hover{background:rgba(255,255,255,.25)}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--sf);border:1px solid var(--ln);color:var(--t1);padding:12px 18px;border-radius:var(--r);font-size:13px;font-weight:600;box-shadow:var(--sh-lg);z-index:9998;opacity:0;transform:translateY(8px);transition:all .22s;pointer-events:none;max-width:300px}
+.toast.on{opacity:1;transform:translateY(0)}
+.toast.ok{border-left:3px solid var(--ok)}.toast.err{border-left:3px solid var(--rd)}.toast.info{border-left:3px solid var(--br)}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media(max-width:1024px){.kpi-row{grid-template-columns:1fr 1fr}.charts-row{grid-template-columns:1fr}}
+@media(max-width:640px){.wrap{padding:14px}.kpi-row{grid-template-columns:1fr}.hdr-in{padding:0 14px}.fi-row{grid-template-columns:1fr}.plate-sel-wrap::after{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════ -->
+<div class="hdr">
+  <div class="hdr-in">
+    <div class="brand">
+      <!-- Automotive logo SVG -->
+      <div class="brand-logo">
+        <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="38" height="38" rx="8" fill="#d4600a"/>
+          <path d="M6 24l3-8h20l3 8H6z" fill="#fff" opacity=".15"/>
+          <path d="M7 23l2.5-7h19L31 23" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="5" y="23" width="28" height="5" rx="2" fill="#fff" opacity=".9"/>
+          <circle cx="12" cy="29.5" r="2.5" fill="#0f1c2e" stroke="#fff" stroke-width="1"/>
+          <circle cx="26" cy="29.5" r="2.5" fill="#0f1c2e" stroke="#fff" stroke-width="1"/>
+          <path d="M5 25h28" stroke="#d4600a" stroke-width=".8"/>
+          <rect x="13" y="18" width="12" height="5" rx="1" fill="#fff" opacity=".3"/>
+          <circle cx="19" cy="20.5" r="1" fill="#fff" opacity=".6"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-t1">Fleet Planning</div>
+        <div class="brand-t2">Vehicle Catalog</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nbtn on" id="navDashboard" onclick="goPage('Dashboard')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+      </button>
+      <button class="nbtn" id="navCatalog" onclick="goPage('Catalog')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="11"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="18" width="7" height="3"/></svg>Catalog
+      </button>
+    </nav>
+
+    <div class="hdr-right">
+      <button class="hbtn" id="expAllBtn" onclick="exportAll()" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export All PPTX
+      </button>
+      <button class="hbtn pri" onclick="document.getElementById('fi').click()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>นำเข้า XLSX
+      </button>
+      <input type="file" id="fi" accept=".xlsx,.xls" onchange="importFile(event)">
+      <input type="file" id="pi" accept="image/*" onchange="onPhotoFile(event)">
+    </div>
+  </div>
+  <div class="lbar" id="lbar"></div>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="page on" id="pgDashboard">
+    <div id="dbEmpty" class="empty">
+      <span class="empty-ico">🚛</span>
+      <div class="empty-title">Fleet Planning Catalog</div>
+      <div class="empty-sub">นำเข้าไฟล์ XLSX เพื่อเริ่มต้นใช้งาน</div>
+      <label class="dzone" for="fi"><span style="font-size:30px">📂</span><div class="dzone-t">คลิกเลือกไฟล์ หรือลากมาวาง</div><div class="dzone-s">รองรับ .xlsx · ดึงรูปภาพรถ 4 ด้านอัตโนมัติ</div></label>
+    </div>
+    <div id="dbContent" style="display:none">
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="charts-row">
+        <div class="ch-card"><div class="ch-hd"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>จำนวนรถแยกตาม DC</div><div class="bclist" id="bclist"></div></div>
+        <div class="ch-card"><div class="ch-hd"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0110 10"/></svg>สัดส่วนชนิดรถ</div>
+          <div class="donut-wrap"><svg id="donutSvg" width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0"></svg><div class="dleg" id="dleg"></div></div>
+        </div>
+      </div>
+      <div class="tbl-card">
+        <table class="dtbl">
+          <thead><tr><th>DC</th><th>🚚 AB รถแห้ง</th><th>❄️ CC รถเย็น</th><th>อื่นๆ</th><th>รวม</th><th>ภาพครบ</th><th></th></tr></thead>
+          <tbody id="dtbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CATALOG ══ -->
+  <div class="page" id="pgCatalog">
+    <div id="catEmpty" class="empty">
+      <span class="empty-ico">🚛</span>
+      <div class="empty-title">ยังไม่มีข้อมูลรถ</div>
+      <div class="empty-sub">นำเข้าไฟล์ XLSX ก่อน</div>
+      <label class="dzone" for="fi"><span style="font-size:28px">📂</span><div class="dzone-t">คลิกเลือกไฟล์</div></label>
+    </div>
+    <div id="catContent" style="display:none">
+      <div class="fbar">
+        <span class="flbl">ชนิด:</span>
+        <button class="fbtn on" onclick="setFType('all',this)">ทั้งหมด</button>
+        <button class="fbtn" id="fbAB" onclick="setFType('AB',this)">🚚 AB รถแห้ง</button>
+        <button class="fbtn" id="fbCC" onclick="setFType('CC',this)">❄️ CC รถเย็น</button>
+
+        <div class="fsep"></div>
+        <span class="flbl">DC:</span>
+        <select class="fsel" id="dcSel" onchange="setFDC(this.value)">
+          <option value="all">— ทั้งหมด —</option>
+        </select>
+
+        <div class="fsep"></div>
+        <span class="flbl">ทะเบียน:</span>
+        <div class="plate-sel-wrap">
+          <select class="fsel fsel-plate" id="plateSel" onchange="jumpToPlate(this.value)">
+            <option value="">— เลือกทะเบียน —</option>
+          </select>
+        </div>
+
+        <span class="fcnt" id="fcnt"></span>
+      </div>
+      <div class="car-grid" id="carGrid"></div>
+    </div>
+    <div id="detView" style="display:none">
+      <button class="back" onclick="closeDetail()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>กลับ Catalog</button>
+      <div id="detBody"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-title"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>แก้ไขข้อมูลรถ</div>
+    <div class="fg"><label>ทะเบียนรถ</label><input class="fi mono" id="edt-plate" type="text" placeholder="เช่น 3ฒฐ-6094"></div>
+    <div class="fg"><label>DC</label><input class="fi" id="edt-dc" type="text" placeholder="เช่น ชลบุรี" list="dcListDL"><datalist id="dcListDL"></datalist></div>
+    <div class="fg"><label>ชนิดรถ</label>
+      <select class="fi" id="edt-type">
+        <option value="AB">🚚 AB — รถแห้ง</option>
+        <option value="CC">❄️ CC — รถเย็น</option>
+        <option value="">อื่นๆ</option>
+      </select>
+    </div>
+    <div class="fi-row">
+      <div class="fg" style="margin:0"><label>ปีรถ (พ.ศ.)</label><input class="fi" id="edt-year" type="number" placeholder="2566" min="2540" max="2590"></div>
+      <div class="fg" style="margin:0"><label>ราคาขายรถ (บาท)</label><input class="fi" id="edt-price" type="number" placeholder="1200000" min="0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="mbtn ok" onclick="saveModal()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb">
+  <button class="lb-x" onclick="closeLB()">✕</button>
+  <img class="lb-img" id="lbImg" src="" alt="" onclick="closeLB()">
+  <div class="lb-cap" id="lbCap"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ CONFIG ════════════════════════════════════════════════════════
+const PHOTO_ROW = 5; // drawing anchor row 0-based (confirmed)
+const SLOTS = [
+  {col:1,name:'ด้านหน้า'},{col:2,name:'ด้านหลัง'},
+  {col:3,name:'ด้านซ้าย'},{col:4,name:'ด้านขวา'},
+];
+const BAR_PAL  = ['1a56db','d4600a','0d47a1','1a9e5f','d0362a','0891b2','6b4db8','b45309'];
+const DNUT_PAL = { AB:'d4600a', CC:'0d47a1', 'อื่นๆ':'7d92a8' };
+
+// ── DC normalizer ─────────────────────────────────────────────────
+// Editable map stored in localStorage
+function getDCNorm(){ try{return JSON.parse(localStorage.getItem('fpc_dcnorm')||'{}')}catch{return{}} }
+function saveDCNorm(m){ try{localStorage.setItem('fpc_dcnorm',JSON.stringify(m))}catch{} }
+function normDC(raw){
+  const s=(raw||'').replace(/^DC\s*/i,'').trim();
+  const m=getDCNorm();
+  return m[s]||s;
+}
+// Built-in corrections applied on import
+const DC_BUILTIN = {'ชลบุรรี':'ชลบุรี','ชลบุรีี':'ชลบุรี','ชลบุร':'ชลบุรี','สุรินท์':'สุรินทร์','สุรินท':'สุรินทร์'};
+
+const TYPE_LABEL = {AB:'AB รถแห้ง',CC:'CC รถเย็น'};
+function typeLbl(t){ return TYPE_LABEL[t]||t||'?'; }
+
+// ══ STATE ═════════════════════════════════════════════════════════
+let vehicles=[], filter={type:'all',dc:'all'}, pending=null, editingPlate=null;
+let detSlide=0;
+const _si={};
+
+// ══ STORAGE ═══════════════════════════════════════════════════════
+const SK='fpc_v6';
+const sl_=()=>{try{return JSON.parse(localStorage.getItem(SK)||'{}')}catch{return{}}};
+const svs_=s=>{try{localStorage.setItem(SK,JSON.stringify(s));return true}catch{toast('⚠️ พื้นที่เต็ม','err');return false}};
+function savePhoto(pl,col,url){const s=sl_();if(!s[pl])s[pl]={};s[pl][col]=url;svs_(s)}
+function delPhoto(pl,col){const s=sl_();if(s[pl]){delete s[pl][col];svs_(s)}}
+function getPhotos(pl){return sl_()[pl]||{}}
+function saveMeta(){
+  const s=sl_();
+  s['__meta__']=vehicles.map(v=>({plate:v.plate,dc:v.dc,type:v.type,year:v.year||'',price:v.price||''}));
+  svs_(s);
+}
+
+// ══ PAGE NAV ══════════════════════════════════════════════════════
+function goPage(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg'+n).classList.add('on');
+  document.getElementById('nav'+n).classList.add('on');
+  if(n==='Catalog') closeDetail();
+}
+
+// ══ IMPORT ════════════════════════════════════════════════════════
+async function importFile(e){
+  const file=e.target.files[0]; if(!file) return; e.target.value='';
+  loading(true); toast('⏳ กำลังอ่านไฟล์ XLSX...','info');
+  try{
+    const zip=await JSZip.loadAsync(await file.arrayBuffer());
+    if(!zip.file('xl/workbook.xml')){toast('❌ ไม่รองรับรูปแบบนี้','err');loading(false);return}
+    await parseXLSX(zip);
+    saveMeta();
+    buildAll();
+    toast(`✅ โหลดสำเร็จ ${vehicles.length} คัน`,'ok');
+  }catch(err){console.error(err);toast('❌ '+err.message,'err')}
+  loading(false);
+}
+
+async function parseXLSX(zip){
+  const SS=[];
+  const ssf=zip.file('xl/sharedStrings.xml');
+  if(ssf){
+    const doc=new DOMParser().parseFromString(await ssf.async('string'),'text/xml');
+    for(const si of doc.getElementsByTagName('si')){let t='';for(const n of si.getElementsByTagName('t'))t+=n.textContent;SS.push(t)}
+  }
+  const wbDoc=new DOMParser().parseFromString(await zip.file('xl/workbook.xml').async('string'),'text/xml');
+  const shEls=wbDoc.getElementsByTagName('sheet');
+  const spm={};
+  const relf=zip.file('xl/_rels/workbook.xml.rels');
+  if(relf){
+    const doc=new DOMParser().parseFromString(await relf.async('string'),'text/xml');
+    for(const r of doc.getElementsByTagName('Relationship')){let t=r.getAttribute('Target');spm[r.getAttribute('Id')]=t.startsWith('/')?t.slice(1):'xl/'+t}
+  }
+  // Keep existing extras (year/price) from current vehicles
+  const existMap={};
+  vehicles.forEach(v=>existMap[v.plate]={year:v.year||'',price:v.price||''});
+  vehicles=[];
+
+  for(let i=0;i<shEls.length;i++){
+    const el=shEls[i];
+    const sname=el.getAttribute('name')||('Sheet'+(i+1));
+    const rId=el.getAttribute('r:id')||el.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    const sp=spm[rId]||`xl/worksheets/sheet${i+1}.xml`;
+    if(sname==='แบบฟอร์ม'||sname.includes('ตัวอย่าง')) continue;
+    const wsf=zip.file(sp); if(!wsf) continue;
+    const wsDoc=new DOMParser().parseFromString(await wsf.async('string'),'text/xml');
+    const cm={};
+    for(const rw of wsDoc.getElementsByTagName('row')){
+      const rn=parseInt(rw.getAttribute('r'))-1;
+      for(const c of rw.getElementsByTagName('c')){
+        const ci=c2i(c.getAttribute('r'));const t=c.getAttribute('t');
+        const ve=c.getElementsByTagName('v')[0];let val='';
+        if(ve) val=(t==='s')?(SS[parseInt(ve.textContent)]||''):ve.textContent;
+        if(!cm[rn])cm[rn]={};cm[rn][ci]=val;
+      }
+    }
+    // B1=DC value, B3=ชนิดรถ (0-based rows 0,2)
+    let dc=normDC(cm[0]?.[1]||'');
+    // Apply built-in corrections
+    dc=DC_BUILTIN[dc]||dc;
+    const plate=sname.trim();
+    const type=(cm[2]?.[1]||'').trim().toUpperCase();
+    if(!dc&&!type) continue;
+    if(!plate) continue;
+
+    // Images
+    const srp=sp.replace('/worksheets/sheet','/worksheets/_rels/sheet').replace('.xml','.xml.rels');
+    let drawPath=null;
+    const srf=zip.file(srp);
+    if(srf){
+      const doc=new DOMParser().parseFromString(await srf.async('string'),'text/xml');
+      for(const r of doc.getElementsByTagName('Relationship')){
+        if(r.getAttribute('Type')?.includes('drawing')){let t=r.getAttribute('Target');drawPath=t.startsWith('/')?t.slice(1):'xl/drawings/'+t.replace('../drawings/','')}
+      }
+    }
+    const imgMap={};
+    if(drawPath){
+      const df=zip.file(drawPath);
+      if(df){
+        const dDoc=new DOMParser().parseFromString(await df.async('string'),'text/xml');
+        const r2p={};
+        const drp=drawPath.replace('/drawings/drawing','/drawings/_rels/drawing').replace('.xml','.xml.rels');
+        const drf=zip.file(drp);
+        if(drf){
+          const doc=new DOMParser().parseFromString(await drf.async('string'),'text/xml');
+          for(const r of doc.getElementsByTagName('Relationship')){let t=r.getAttribute('Target');r2p[r.getAttribute('Id')]=t.startsWith('/')?t.slice(1):'xl/media/'+t.replace('../media/','')}
+        }
+        const anchors=[...dDoc.getElementsByTagName('xdr:twoCellAnchor'),...dDoc.getElementsByTagName('twoCellAnchor'),...dDoc.getElementsByTagName('xdr:oneCellAnchor'),...dDoc.getElementsByTagName('oneCellAnchor')];
+        for(const a of anchors){
+          const fe=a.getElementsByTagName('xdr:from')[0]||a.getElementsByTagName('from')[0]; if(!fe) continue;
+          const re=fe.getElementsByTagName('xdr:row')[0]||fe.getElementsByTagName('row')[0];
+          const ce=fe.getElementsByTagName('xdr:col')[0]||fe.getElementsByTagName('col')[0];
+          if(!re||!ce) continue;
+          const ar=parseInt(re.textContent),ac=parseInt(ce.textContent);
+          const bl=a.getElementsByTagName('a:blip')[0]||a.getElementsByTagName('blip')[0]; if(!bl) continue;
+          const rid=bl.getAttribute('r:embed')||bl.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','embed'); if(!rid) continue;
+          const ip=r2p[rid]; if(!ip) continue;
+          const imf=zip.file(ip); if(!imf) continue;
+          const key=`${ar}_${ac}`; if(imgMap[key]) continue;
+          const bytes=await imf.async('uint8array');
+          const ext=ip.split('.').pop().toLowerCase();
+          const mime=ext==='png'?'image/png':ext==='gif'?'image/gif':'image/jpeg';
+          imgMap[key]=`data:${mime};base64,${b64(bytes)}`;
+        }
+      }
+    }
+    const filePhotos={};
+    for(const sl2 of SLOTS){const key=`${PHOTO_ROW}_${sl2.col}`;if(imgMap[key])filePhotos[sl2.col]=imgMap[key]}
+    const stored=getPhotos(plate);
+    for(const col of Object.keys(filePhotos)) if(!stored[col]) stored[col]=filePhotos[col];
+    const s_=sl_(); s_[plate]=stored; svs_(s_);
+    const ex=existMap[plate]||{};
+    vehicles.push({plate,dc,type,year:ex.year||'',price:ex.price||'',photos:stored});
+  }
+}
+
+function c2i(ref){const m=(ref||'').match(/^([A-Z]+)/);if(!m)return 0;let i=0;for(const c of m[1])i=i*26+(c.charCodeAt(0)-64);return i-1}
+function b64(bytes){let s='';const ch=8192;for(let i=0;i<bytes.length;i+=ch)s+=String.fromCharCode(...bytes.subarray(i,i+ch));return btoa(s)}
+
+// ══ BUILD ALL ═════════════════════════════════════════════════════
+function buildAll(){ buildDash(); buildCatalogPage(); document.getElementById('expAllBtn').style.display=vehicles.length?'flex':'none'; }
+
+// ══ DASHBOARD ════════════════════════════════════════════════════
+const BAR_COLORS=['1a56db','d4600a','0d47a1','1a9e5f','d0362a','0891b2','6b4db8','b45309'];
+function buildDash(){
+  if(!vehicles.length){document.getElementById('dbEmpty').style.display='block';document.getElementById('dbContent').style.display='none';return}
+  document.getElementById('dbEmpty').style.display='none'; document.getElementById('dbContent').style.display='block';
+  const N=vehicles.length,nAB=vehicles.filter(v=>v.type==='AB').length,nCC=vehicles.filter(v=>v.type==='CC').length;
+  const nDone=vehicles.filter(v=>SLOTS.every(s=>(v.photos||{})[s.col])).length;
+  const dcMap={};
+  vehicles.forEach(v=>{const d=v.dc||'ไม่ระบุ';if(!dcMap[d])dcMap[d]={t:0,AB:0,CC:0,o:0,done:0};dcMap[d].t++;if(v.type==='AB')dcMap[d].AB++;else if(v.type==='CC')dcMap[d].CC++;else dcMap[d].o++;if(SLOTS.every(s=>(v.photos||{})[s.col]))dcMap[d].done++});
+  document.getElementById('kpiRow').innerHTML=`
+    <div class="kpi k-total"><div class="kpi-top"><div class="kpi-ico">🚛</div><span class="kpi-tag">รวมทั้งหมด</span></div><div class="kpi-val">${N}</div><div class="kpi-lbl">รถกระจายทั้งหมด</div><div class="kpi-sub">${Object.keys(dcMap).length} DC</div><div class="kpi-bar"></div></div>
+    <div class="kpi k-ab"><div class="kpi-top"><div class="kpi-ico">🚚</div><span class="kpi-tag">AB รถแห้ง</span></div><div class="kpi-val">${nAB}</div><div class="kpi-lbl">รถ AB รถแห้ง</div><div class="kpi-sub">${N?Math.round(nAB/N*100):0}% ของทั้งหมด</div><div class="kpi-bar"></div></div>
+    <div class="kpi k-cc"><div class="kpi-top"><div class="kpi-ico">❄️</div><span class="kpi-tag">CC รถเย็น</span></div><div class="kpi-val">${nCC}</div><div class="kpi-lbl">รถ CC รถเย็น</div><div class="kpi-sub">${N?Math.round(nCC/N*100):0}% ของทั้งหมด</div><div class="kpi-bar"></div></div>
+    <div class="kpi k-ok"><div class="kpi-top"><div class="kpi-ico">✅</div><span class="kpi-tag">ภาพครบ</span></div><div class="kpi-val">${nDone}</div><div class="kpi-lbl">ภาพครบทั้ง 4 ด้าน</div><div class="kpi-sub">${N?Math.round(nDone/N*100):0}% สมบูรณ์</div><div class="kpi-bar"></div></div>`;
+  const sorted=Object.entries(dcMap).sort((a,b)=>b[1].t-a[1].t);
+  const maxV=sorted[0]?.[1].t||1;
+  document.getElementById('bclist').innerHTML=sorted.map(([dc,d],i)=>{
+    const pct=Math.round(d.t/maxV*100);
+    return `<div class="bc-row"><div class="bc-lbl" title="DC ${dc}">DC ${dc}</div><div class="bc-track"><div class="bc-fill" style="width:${pct}%;background:#${BAR_COLORS[i%BAR_COLORS.length]}"><span>${d.t}</span></div></div><div class="bc-num">${d.t}</div></div>`;
+  }).join('');
+  const types={AB:nAB,CC:nCC};const oth=N-nAB-nCC;if(oth>0)types['อื่นๆ']=oth;
+  buildDonut(types,N);
+  document.getElementById('dtbody').innerHTML=sorted.map(([dc,d])=>{
+    const pct=d.t?Math.round(d.done/d.t*100):0;
+    return `<tr><td><strong>DC ${dc}</strong></td><td>${d.AB?`<span class="pip pip-ab">${d.AB}</span>`:'—'}</td><td>${d.CC?`<span class="pip pip-cc">${d.CC}</span>`:'—'}</td><td>${d.o?`<span class="pip pip-ot">${d.o}</span>`:'—'}</td><td><strong>${d.t}</strong></td><td><div class="prog-cell"><div class="pmini"><div class="pf" style="width:${pct}%"></div></div><span class="ptxt">${d.done}/${d.t}</span></div></td><td><button class="tlink" onclick="filterDC('${esc(dc)}')">ดูรายทะเบียน →</button></td></tr>`;
+  }).join('');
+}
+
+function buildDonut(types,total){
+  const entries=Object.entries(types).filter(([,v])=>v>0);
+  let angle=-90,paths='',legs=[];
+  const cx=60,cy=60,R=48,r=30;
+  entries.forEach(([name,val],i)=>{
+    const pct=val/total,deg=pct*360;
+    const color=DNUT_PAL[name]||BAR_COLORS[i%BAR_COLORS.length];
+    const a1=angle*Math.PI/180,a2=(angle+deg)*Math.PI/180;
+    const x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1),x2=cx+R*Math.cos(a2),y2=cy+R*Math.sin(a2);
+    const ix1=cx+r*Math.cos(a1),iy1=cy+r*Math.sin(a1),ix2=cx+r*Math.cos(a2),iy2=cy+r*Math.sin(a2);
+    const lg=deg>180?1:0;
+    paths+=`<path d="M${x1} ${y1} A${R} ${R} 0 ${lg} 1 ${x2} ${y2} L${ix2} ${iy2} A${r} ${r} 0 ${lg} 0 ${ix1} ${iy1}Z" fill="#${color}" opacity=".9"/>`;
+    legs.push(`<div class="dleg-row"><div class="dleg-dot" style="background:#${color}"></div><div class="dleg-name">${name==='AB'?'AB รถแห้ง':name==='CC'?'CC รถเย็น':name}</div><div class="dleg-val">${val}</div><div class="dleg-pct">${Math.round(pct*100)}%</div></div>`);
+    angle+=deg;
+  });
+  paths+=`<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="18" font-weight="700" fill="#18243a">${total}</text><text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="10" fill="#7d92a8">คัน</text>`;
+  document.getElementById('donutSvg').innerHTML=paths;
+  document.getElementById('dleg').innerHTML=legs.join('');
+}
+
+function filterDC(dc){filter={type:'all',dc};goPage('Catalog');buildCatalogPage()}
+
+// ══ CATALOG ═══════════════════════════════════════════════════════
+function buildCatalogPage(){
+  if(!vehicles.length){document.getElementById('catEmpty').style.display='block';document.getElementById('catContent').style.display='none';return}
+  document.getElementById('catEmpty').style.display='none'; document.getElementById('catContent').style.display='block';
+
+  // DC dropdown
+  const dcs=[...new Set(vehicles.map(v=>v.dc).filter(Boolean))].sort();
+  const dcSel=document.getElementById('dcSel');
+  dcSel.innerHTML=`<option value="all">— ทั้งหมด —</option>`+dcs.map(dc=>`<option value="${esc(dc)}">${dc}</option>`).join('');
+  dcSel.value=filter.dc;
+
+  // Plate dropdown
+  rebuildPlateDropdown();
+  renderCat();
+}
+
+function rebuildPlateDropdown(){
+  let fv=vehicles;
+  if(filter.type!=='all') fv=fv.filter(v=>v.type===filter.type);
+  if(filter.dc!=='all')   fv=fv.filter(v=>v.dc===filter.dc);
+  const plateSel=document.getElementById('plateSel');
+  plateSel.innerHTML=`<option value="">— เลือกทะเบียน —</option>`+fv.map(v=>`<option value="${esc(v.plate)}">${v.plate}</option>`).join('');
+}
+
+function setFType(type,btn){
+  filter.type=type;
+  document.querySelectorAll('.fbar .fbtn').forEach(b=>b.classList.remove('on','on-ab','on-cc'));
+  if(type==='AB') btn.classList.add('on-ab');
+  else if(type==='CC') btn.classList.add('on-cc');
+  else btn.classList.add('on');
+  rebuildPlateDropdown(); renderCat();
+}
+function setFDC(val){filter.dc=val;rebuildPlateDropdown();renderCat()}
+function jumpToPlate(plate){if(!plate) return; openDetail(plate); document.getElementById('plateSel').value='';}
+
+function renderCat(){
+  let fv=vehicles;
+  if(filter.type!=='all') fv=fv.filter(v=>v.type===filter.type);
+  if(filter.dc!=='all')   fv=fv.filter(v=>v.dc===filter.dc);
+  document.getElementById('fcnt').textContent=`แสดง ${fv.length} / ${vehicles.length} คัน`;
+  document.getElementById('carGrid').innerHTML=fv.map(v=>carCard(v)).join('');
+}
+
+function carCard(v){
+  const photos=v.photos||{};
+  const filled=SLOTS.filter(s=>photos[s.col]).length;
+  const pct=Math.round(filled/SLOTS.length*100);
+  const tc=['AB','CC'].includes(v.type)?v.type:'q';
+  const pid=eid(v.plate);
+  if(!_si[pid])_si[pid]=0;
+  const cells=SLOTS.map(sl=>{
+    const img=photos[sl.col];
+    return `<div class="pstrip-cell">${img?`<img class="pstrip-img" src="${img}" loading="lazy" alt="${sl.name}"><div class="pstrip-lbl">${sl.name}</div>`:`<div class="pstrip-empty">🖼</div>`}</div>`;
+  }).join('');
+  const infoLine=[v.year?`ปี ${v.year}`:'',v.price?`฿${Number(v.price).toLocaleString()}`:''].filter(Boolean).join(' · ');
+  return `<div class="car-card card-${tc}" onclick="openDetail('${esc(v.plate)}')">
+    <div class="cc-head">
+      <div>
+        <div class="cc-plate">${v.plate}</div>
+        <div class="cc-dc">DC ${v.dc}</div>
+        ${infoLine?`<div class="cc-info">${infoLine}</div>`:''}
+      </div>
+      <span class="ctype ct-${tc}">${typeLbl(v.type)}</span>
+    </div>
+    <div class="pstrip-wrap">
+      <div class="pstrip" id="ps_${pid}">${cells}</div>
+      <button class="pstrip-arr pstrip-prev" onclick="event.stopPropagation();slideCard('${pid}',-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button class="pstrip-arr pstrip-next" onclick="event.stopPropagation();slideCard('${pid}',1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="pstrip-dots" id="pd_${pid}">${SLOTS.map((_,i)=>`<div class="pdot${i===0?' on':''}" onclick="event.stopPropagation();goSlideCard('${pid}',${i})"></div>`).join('')}</div>
+    </div>
+    <div class="cc-foot">
+      <div class="pmini2"><div class="pmini2-track"><div class="pmini2-fill" style="width:${pct}%"></div></div><div class="pmini2-txt">${filled}/4</div></div>
+      <div class="cc-acts" onclick="event.stopPropagation()">
+        <button class="ca ca-view" onclick="openDetail('${esc(v.plate)}')">รายละเอียด</button>
+        <button class="ca ca-ppt" onclick="exportOne('${esc(v.plate)}')">📊 PPTX</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function slideCard(pid,dir){_si[pid]=(_si[pid]+dir+SLOTS.length)%SLOTS.length;applySlideCard(pid)}
+function goSlideCard(pid,idx){_si[pid]=idx;applySlideCard(pid)}
+function applySlideCard(pid){
+  const s=document.getElementById('ps_'+pid);if(!s) return;
+  s.style.transform=`translateX(-${_si[pid]*100}%)`;
+  document.getElementById('pd_'+pid)?.querySelectorAll('.pdot').forEach((d,i)=>d.classList.toggle('on',i===_si[pid]));
+}
+
+// ══ DETAIL ════════════════════════════════════════════════════════
+function openDetail(plate){
+  const v=vehicles.find(x=>x.plate===plate); if(!v) return;
+  document.getElementById('catContent').style.display='none';
+  document.getElementById('detView').style.display='block';
+  document.getElementById('detBody').innerHTML=buildDetail(v);
+  detSlide=0;
+}
+function closeDetail(){document.getElementById('catContent').style.display='block';document.getElementById('detView').style.display='none'}
+
+function buildDetail(v){
+  const photos=v.photos||{};
+  const filled=SLOTS.filter(s=>photos[s.col]).length;
+  const pct=Math.round(filled/SLOTS.length*100);
+  const tc=['AB','CC'].includes(v.type)?v.type:'q';
+  const infoLine=[v.year?`ปี พ.ศ. ${v.year}`:'',v.price?`ราคาขาย ฿${Number(v.price).toLocaleString()}`:''].filter(Boolean).join('  ·  ');
+
+  const slides=SLOTS.map((sl,i)=>{
+    const img=photos[sl.col];
+    return `<div class="det-slide">
+      ${img
+        ?`<img src="${img}" alt="${sl.name}" onclick="openLB('${esc(img)}','${v.plate} — ${sl.name}')">
+           <div class="ph-lbl-bar">${sl.name}</div>
+           <div class="ph-chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+           <div class="ph-ov">
+             <button class="ovb" onclick="changeP(event,'${esc(v.plate)}','${sl.col}','${sl.name}')">เปลี่ยน</button>
+             <button class="ovb del" onclick="removeP(event,'${esc(v.plate)}','${sl.col}')">ลบ</button>
+           </div>`
+        :`<div class="det-empty" onclick="clickSlot('${esc(v.plate)}','${sl.col}','${sl.name}')">
+            <div class="det-empty-ico">📷</div>
+            <div class="det-empty-lbl">${sl.name}</div>
+            <div class="det-empty-sub">คลิกเพื่อเพิ่มรูป</div>
+          </div>`}
+    </div>`;
+  }).join('');
+
+  return `<div class="vh vh-${tc.toLowerCase()}">
+    <div class="vh-plate-wrap">
+      <div class="vh-plate">${v.plate}</div>
+    </div>
+    <div class="vh-meta">
+      <div class="vh-dc-row">
+        <div class="vh-dc">DC <span>${v.dc}</span></div>
+        <span class="pip pip-${tc.toLowerCase()}">${typeLbl(v.type)}</span>
+      </div>
+      <div class="vh-extra">
+        ${v.year?`<div class="meta-chip"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>ปี ${v.year}</div>`:''}
+        ${v.price?`<div class="meta-chip"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>฿${Number(v.price).toLocaleString()}</div>`:''}
+      </div>
+    </div>
+    <div class="vh-prog">
+      <div class="vh-prog-top"><span>ภาพรถ</span><strong style="color:${pct===100?'var(--ok)':'var(--t1)'}">${pct}%</strong></div>
+      <div class="vh-prog-track"><div class="vh-prog-fill" style="width:${pct}%"></div></div>
+      <div class="vh-prog-sub">${filled} / ${SLOTS.length} ภาพ</div>
+    </div>
+    <div class="vh-acts">
+      <button class="edit-btn" onclick="openModal('${esc(v.plate)}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>แก้ไขข้อมูล</button>
+      <button class="vbtn pptx" onclick="exportOne('${esc(v.plate)}')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export PPTX</button>
+    </div>
+  </div>
+  <div class="sec-lbl">📸 ภาพถ่ายรูปรถ 4 ด้าน${infoLine?' — '+infoLine:''}</div>
+  <div class="photo-wrap">
+    <div class="det-slider" id="detSlider">${slides}</div>
+    <button class="sl-arr sl-prev" onclick="moveDet(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="sl-arr sl-next" onclick="moveDet(1)"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+  </div>`;
+}
+
+function moveDet(dir){
+  detSlide=(detSlide+dir+SLOTS.length)%SLOTS.length;
+  const s=document.getElementById('detSlider');if(s)s.style.transform=`translateX(-${detSlide*100}%)`;
+}
+
+// ══ MODAL ════════════════════════════════════════════════════════
+function openModal(plate){
+  const v=vehicles.find(x=>x.plate===plate); if(!v) return;
+  editingPlate=plate;
+  document.getElementById('edt-plate').value=v.plate;
+  document.getElementById('edt-dc').value=v.dc;
+  document.getElementById('edt-type').value=v.type||'';
+  document.getElementById('edt-year').value=v.year||'';
+  document.getElementById('edt-price').value=v.price||'';
+  // Populate DC datalist
+  const dcs=[...new Set(vehicles.map(v=>v.dc).filter(Boolean))].sort();
+  document.getElementById('dcListDL').innerHTML=dcs.map(d=>`<option value="${d}">`).join('');
+  document.getElementById('editModal').classList.add('on');
+}
+function closeModal(){document.getElementById('editModal').classList.remove('on');editingPlate=null}
+function saveModal(){
+  const v=vehicles.find(x=>x.plate===editingPlate); if(!v){closeModal();return}
+  const newPlate=document.getElementById('edt-plate').value.trim();
+  const newDC=document.getElementById('edt-dc').value.trim();
+  const newType=document.getElementById('edt-type').value;
+  const newYear=document.getElementById('edt-year').value.trim();
+  const newPrice=document.getElementById('edt-price').value.trim();
+  // Migrate photos if plate changed
+  if(newPlate&&newPlate!==v.plate){
+    const s_=sl_();
+    if(s_[v.plate]){s_[newPlate]=s_[v.plate];delete s_[v.plate];svs_(s_)}
+  }
+  if(newPlate) v.plate=newPlate;
+  if(newDC) v.dc=newDC;
+  v.type=newType; v.year=newYear; v.price=newPrice;
+  // If DC was corrected, save to norm map
+  if(newDC&&newDC!==editingPlate){
+    const m=getDCNorm(); m[editingPlate]=newDC; saveDCNorm(m);
+  }
+  saveMeta();
+  closeModal();
+  buildAll();
+  openDetail(v.plate);
+  toast('✅ บันทึกข้อมูลแล้ว','ok');
+}
+document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+// ══ PHOTO ACTIONS ════════════════════════════════════════════════
+function clickSlot(pl,col,name){const v=vehicles.find(x=>x.plate===pl);if(!v)return;const img=v.photos?.[col];if(img)openLB(img,`${pl} — ${name}`);else{pending={pl,col,name};document.getElementById('pi').click()}}
+function changeP(e,pl,col,name){e.stopPropagation();pending={pl,col,name};document.getElementById('pi').click()}
+function removeP(e,pl,col){
+  e.stopPropagation();
+  const v=vehicles.find(x=>x.plate===pl);
+  if(v?.photos) delete v.photos[col];
+  delPhoto(pl,col);refreshDet(pl);toast('🗑️ ลบรูปแล้ว','ok');
+}
+function onPhotoFile(e){
+  const file=e.target.files[0];if(!file||!pending)return;
+  const {pl,col,name}=pending;
+  const rd=new FileReader();
+  rd.onload=ev=>{
+    const url=ev.target.result;
+    const v=vehicles.find(x=>x.plate===pl);
+    if(v){if(!v.photos)v.photos={};v.photos[col]=url}
+    savePhoto(pl,col,url);refreshDet(pl);toast(`✅ บันทึกรูป ${name}`,'ok');
+  };
+  rd.readAsDataURL(file);e.target.value='';pending=null;
+}
+function refreshDet(pl){
+  const v=vehicles.find(x=>x.plate===pl);if(!v)return;
+  if(document.getElementById('detView').style.display!=='none')document.getElementById('detBody').innerHTML=buildDetail(v);
+  renderCat();
+}
+
+// ══ LIGHTBOX ══════════════════════════════════════════════════════
+function openLB(src,cap){document.getElementById('lbImg').src=src;document.getElementById('lbCap').textContent=cap;document.getElementById('lb').classList.add('on')}
+function closeLB(){document.getElementById('lb').classList.remove('on')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLB();closeModal()}});
+document.getElementById('lb').addEventListener('click',function(e){if(e.target===this)closeLB()});
+
+// ══ PPTX — 1 ทะเบียน 1 สไลด์ ════════════════════════════════════
+async function buildSlide(prs,v){
+  const photos=v.photos||{};
+  const now=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const isAB=v.type==='AB', isCC=v.type==='CC';
+  const typeColor=isAB?'d4600a':isCC?'0d47a1':'6b4db8';
+  const typeColorLt=isAB?'fff1e6':isCC?'e3eeff':'f0ebff';
+  const typeLabel=typeLbl(v.type);
+  const filled=SLOTS.filter(s=>photos[s.col]).length;
+
+  const sl=prs.addSlide();
+  sl.background={color:'f5f7fb'};
+
+  // ── Top accent bar ────────────────────────────────────────────
+  sl.addShape(prs.ShapeType.rect,{x:0,y:0,w:10,h:0.08,fill:{color:typeColor},line:{color:typeColor}});
+
+  // ── Left info panel ───────────────────────────────────────────
+  const LW=3.0;
+  sl.addShape(prs.ShapeType.rect,{x:0,y:0.08,w:LW,h:5.545,fill:{color:'18243a'},line:{color:'18243a'}});
+
+  // Brand header
+  sl.addText('FLEET PLANNING',{x:0.22,y:0.22,w:LW-0.3,h:0.26,fontSize:8,color:'8496a9',bold:true,charSpacing:5,fontFace:'Calibri'});
+  sl.addText('Vehicle Catalog',{x:0.22,y:0.46,w:LW-0.3,h:0.22,fontSize:9,color:'7d92a8',fontFace:'Calibri'});
+
+  // Divider 1
+  sl.addShape(prs.ShapeType.rect,{x:0.22,y:0.8,w:LW-0.36,h:0.02,fill:{color:'2d3f52'},line:{color:'2d3f52'}});
+
+  // Plate number
+  sl.addText(v.plate,{x:0.22,y:0.95,w:LW-0.3,h:1.1,fontSize:30,color:'f5f7fb',bold:true,fontFace:'Calibri',charSpacing:1,shrinkText:true,breakLine:false});
+
+  // Type badge
+  sl.addShape(prs.ShapeType.roundRect,{x:0.22,y:2.12,w:LW-0.44,h:0.48,fill:{color:typeColor},line:{color:typeColor},rectRadius:0.06});
+  sl.addText(typeLabel,{x:0.22,y:2.12,w:LW-0.44,h:0.48,fontSize:13,color:'ffffff',bold:true,align:'center',valign:'middle',fontFace:'Calibri'});
+
+  // Divider 2
+  sl.addShape(prs.ShapeType.rect,{x:0.22,y:2.74,w:LW-0.36,h:0.02,fill:{color:'2d3f52'},line:{color:'2d3f52'}});
+
+  // DC
+  sl.addText('Distribution Center',{x:0.22,y:2.86,w:LW-0.3,h:0.2,fontSize:7.5,color:'4a5e72',charSpacing:2,fontFace:'Calibri'});
+  sl.addText(`DC ${v.dc}`,{x:0.22,y:3.04,w:LW-0.3,h:0.48,fontSize:20,color:'f5f7fb',bold:true,fontFace:'Calibri',shrinkText:true,breakLine:false});
+
+  // Year & Price
+  let infoY=3.64;
+  if(v.year||v.price){
+    sl.addShape(prs.ShapeType.rect,{x:0.22,y:infoY,w:LW-0.36,h:0.02,fill:{color:'2d3f52'},line:{color:'2d3f52'}});
+    infoY+=0.14;
+  }
+  if(v.year){
+    sl.addText('ปีรถ (พ.ศ.)',{x:0.22,y:infoY,w:LW-0.3,h:0.2,fontSize:7.5,color:'4a5e72',charSpacing:2,fontFace:'Calibri'});
+    sl.addText(String(v.year),{x:0.22,y:infoY+0.18,w:LW-0.3,h:0.38,fontSize:22,color:typeColor==='d4600a'?'f07a30':'3a7bd5',bold:true,fontFace:'Calibri'});
+    infoY+=0.62;
+  }
+  if(v.price){
+    sl.addText('ราคาขายรถ',{x:0.22,y:infoY,w:LW-0.3,h:0.2,fontSize:7.5,color:'4a5e72',charSpacing:2,fontFace:'Calibri'});
+    sl.addText(`฿${Number(v.price).toLocaleString()}`,{x:0.22,y:infoY+0.18,w:LW-0.3,h:0.36,fontSize:15,color:'1a9e5f',bold:true,fontFace:'Calibri',shrinkText:true});
+  }
+
+  // Completeness indicator
+  sl.addText(`ภาพครบ ${filled}/${SLOTS.length}`,{x:0.22,y:5.18,w:LW-0.3,h:0.26,fontSize:9,color:filled===4?'1a9e5f':'8496a9',bold:true,fontFace:'Calibri'});
+
+  // ── Right photo grid 2×2 ──────────────────────────────────────
+  const RX=LW+0.15, RW=10-RX-0.15;
+  const PW=(RW-0.12)/2, PH=(5.545-0.08*3)/2;
+  const grid=[{x:RX,y:0.08},{x:RX+PW+0.12,y:0.08},{x:RX,y:0.08+PH+0.08},{x:RX+PW+0.12,y:0.08+PH+0.08}];
+
+  SLOTS.forEach((slot,i)=>{
+    const {x,y}=grid[i];
+    const img=photos[slot.col];
+    const hasImg=!!img;
+    // Card
+    sl.addShape(prs.ShapeType.rect,{x,y,w:PW,h:PH,fill:{color:'ffffff'},line:{color:'dde3ed',pt:1},shadow:{type:'outer',blur:5,offset:1,angle:135,color:'000000',opacity:0.07}});
+    if(hasImg){
+      const raw=img.replace(/^data:[^;]+;base64,/,'');
+      const mime=img.startsWith('data:image/png')?'image/png;base64,':'image/jpeg;base64,';
+      sl.addImage({data:mime+raw,x:x+0.04,y:y+0.04,w:PW-0.08,h:PH-0.32,sizing:{type:'cover',w:PW-0.08,h:PH-0.32}});
+    }else{
+      sl.addShape(prs.ShapeType.rect,{x:x+0.04,y:y+0.04,w:PW-0.08,h:PH-0.32,fill:{color:'eaeff6'},line:{color:'dde3ed',pt:1,dashType:'dash'}});
+      sl.addText('ไม่มีภาพ',{x:x+0.04,y:y+0.04,w:PW-0.08,h:PH-0.32,fontSize:12,color:'c5cedd',align:'center',valign:'middle',fontFace:'Calibri'});
+    }
+    // Label bar
+    const barCol=hasImg?typeColor:'8496a9';
+    sl.addShape(prs.ShapeType.rect,{x,y:y+PH-0.28,w:PW,h:0.28,fill:{color:barCol},line:{color:barCol}});
+    sl.addShape(prs.ShapeType.ellipse,{x:x+0.1,y:y+PH-0.2,w:0.1,h:0.1,fill:{color:hasImg?'ffffff':'d0362a'},line:{color:hasImg?'ffffff':'d0362a'}});
+    sl.addText(slot.name,{x:x+0.26,y:y+PH-0.28,w:PW-0.32,h:0.28,fontSize:10,color:'ffffff',bold:true,valign:'middle',fontFace:'Calibri'});
+  });
+
+  // Footer
+  sl.addShape(prs.ShapeType.rect,{x:LW,y:5.44,w:10-LW,h:0.185,fill:{color:'eaeff6'},line:{color:'eaeff6'}});
+  sl.addText(`Fleet Planning Catalog  ·  ${v.plate}  ·  ${now}`,{x:LW+0.12,y:5.44,w:10-LW-0.2,h:0.185,fontSize:7.5,color:'8496a9',valign:'middle',fontFace:'Calibri'});
+}
+
+async function exportOne(plate){
+  const v=vehicles.find(x=>x.plate===plate);if(!v)return;
+  toast(`⏳ กำลังสร้าง PPTX...`,'info');
+  try{
+    const prs=new PptxGenJS();prs.layout='LAYOUT_16x9';prs.title=`Fleet - ${plate}`;
+    await buildSlide(prs,v);
+    await prs.writeFile({fileName:`Fleet_${plate.replace(/[^a-zA-Z0-9ก-๙]/g,'_')}.pptx`});
+    toast(`✅ บันทึก PPTX ${plate} สำเร็จ`,'ok');
+  }catch(err){console.error(err);toast('❌ '+err.message,'err')}
+}
+
+async function exportAll(){
+  if(!vehicles.length)return;
+  toast(`⏳ กำลังสร้าง PPTX ${vehicles.length} คัน...`,'info');loading(true);
+  try{
+    const prs=new PptxGenJS();prs.layout='LAYOUT_16x9';prs.title='Fleet Planning Catalog';
+    const now=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+    const N=vehicles.length,nAB=vehicles.filter(v=>v.type==='AB').length,nCC=vehicles.filter(v=>v.type==='CC').length;
+    const dcs=[...new Set(vehicles.map(v=>v.dc).filter(Boolean))];
+    // Summary cover
+    const sum=prs.addSlide();sum.background={color:'18243a'};
+    sum.addShape(prs.ShapeType.rect,{x:0,y:0,w:10,h:0.12,fill:{color:'d4600a'},line:{color:'d4600a'}});
+    sum.addShape(prs.ShapeType.rect,{x:0,y:0.12,w:10,h:0.06,fill:{color:'0d47a1'},line:{color:'0d47a1'}});
+    sum.addText('FLEET PLANNING',{x:0.55,y:0.48,w:9,h:0.35,fontSize:10,color:'7d92a8',bold:true,charSpacing:6,fontFace:'Calibri'});
+    sum.addText('Vehicle Catalog',{x:0.55,y:0.95,w:9,h:1.1,fontSize:52,color:'f5f7fb',bold:true,fontFace:'Calibri'});
+    sum.addShape(prs.ShapeType.rect,{x:0.55,y:2.2,w:8.9,h:0.022,fill:{color:'2d3f52'},line:{color:'2d3f52'}});
+    [{l:'รถทั้งหมด',v:N,c:'1a56db'},{l:'AB รถแห้ง',v:nAB,c:'d4600a'},{l:'CC รถเย็น',v:nCC,c:'0d47a1'},{l:'จำนวน DC',v:dcs.length,c:'1a9e5f'}].forEach((s,i)=>{
+      const x=0.55+i*2.37;
+      sum.addShape(prs.ShapeType.rect,{x,y:2.4,w:2.2,h:1.42,fill:{color:'253447'},line:{color:'2d3f52',pt:1}});
+      sum.addShape(prs.ShapeType.rect,{x,y:2.4,w:2.2,h:0.1,fill:{color:s.c},line:{color:s.c}});
+      sum.addText(String(s.v),{x,y:2.5,w:2.2,h:0.82,fontSize:42,color:'f5f7fb',bold:true,align:'center',valign:'middle',fontFace:'Calibri'});
+      sum.addText(s.l,{x,y:3.32,w:2.2,h:0.38,fontSize:11,color:'7d92a8',align:'center',fontFace:'Calibri'});
+    });
+    sum.addText(`ออกรายงาน: ${now}`,{x:0.55,y:5.15,w:9,h:0.28,fontSize:9,color:'2d3f52',fontFace:'Calibri'});
+    for(const v of vehicles) await buildSlide(prs,v);
+    await prs.writeFile({fileName:'Fleet_Planning_Catalog_All.pptx'});
+    toast(`✅ Export ${vehicles.length} คัน สำเร็จ`,'ok');
+  }catch(err){console.error(err);toast('❌ '+err.message,'err')}
+  loading(false);
+}
+
+// ══ HELPERS ═══════════════════════════════════════════════════════
+function loading(on){document.getElementById('lbar').classList.toggle('on',on)}
+let _tt;
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast on '+(type||'');clearTimeout(_tt);_tt=setTimeout(()=>t.className='toast',3200)}
+function eid(s){return s.replace(/[^a-zA-Z0-9ก-๙]/g,'_')}
+function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+
+// Drag & drop
+document.body.addEventListener('dragover',e=>e.preventDefault());
+document.body.addEventListener('drop',e=>{
+  e.preventDefault();const f=e.dataTransfer.files[0];
+  if(f&&/\.xlsx?$/i.test(f.name)){const inp=document.getElementById('fi');const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;importFile({target:inp})}
+});
+
+// ══ RESTORE ═══════════════════════════════════════════════════════
+(function(){
+  const s_=sl_();const meta=s_['__meta__'];
+  if(meta?.length){
+    vehicles=meta.map(m=>({...m,photos:s_[m.plate]||{}}));
+    buildAll();
+    toast(`📂 โหลด ${vehicles.length} คัน จากที่บันทึกไว้`,'info');
+  }
+})();
+</script>
+</body>
+</html>
