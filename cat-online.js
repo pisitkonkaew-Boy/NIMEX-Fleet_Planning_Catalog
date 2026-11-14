@@ -187,7 +187,13 @@ function buildDC(){var pg=document.getElementById('pgDC'),D=byKey(vehicles,funct
 
 /* ---------- share / export (pick what to share; any slice of the fleet) ---------- */
 function shareBtn(){var r=document.querySelector('.hdr-right');if(!r||document.getElementById('fpxShare'))return;var b=document.createElement('button');b.className='hbtn';b.id='fpxShare';b.type='button';b.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 8l5-5 5 5M5 14v6h14v-6"/></svg>แชร์ / ส่งออก';b.onclick=shareModal;var ea=document.getElementById('expAllBtn');if(ea)ea.style.display='none';r.insertBefore(b,document.getElementById('themeBtn'))}
-var SEL={zone:'all',dc:'all',type:'all',plates:'',only:false,sides:{1:1,2:1,3:1,4:1},sec:{kpi:1,zone:1,dc:0,cars:1}};
+/* every photo the inspection takes; the user ticks which ones go into PowerPoint / car images */
+var PHG=[['รูปรถ 4 ด้าน',[['front','ด้านหน้า'],['back','ด้านหลัง'],['left','ด้านซ้าย'],['right','ด้านขวา']]],['ห้องเครื่อง',[['engine','ห้องเครื่อง'],['battery','แบตเตอรี่'],['odo','หน้าปัดเลขไมล์']]],
+ ['ยาง 4 เส้น',[['tFL','ยางหน้าซ้าย'],['tFR','ยางหน้าขวา'],['tRL','ยางหลังซ้าย'],['tRR','ยางหลังขวา']]],['ปียาง',[['dFL','ปียาง หน้าซ้าย'],['dFR','ปียาง หน้าขวา'],['dRL','ปียาง หลังซ้าย'],['dRR','ปียาง หลังขวา']]],
+ ['ยางอะไหล่ / ห้องโดยสาร',[['spare','ยางอะไหล่'],['cabin','ห้องโดยสาร']]],['ภายในตู้',[['boxF','ภายในตู้ ด้านหน้า'],['boxB','ภายในตู้ ด้านหลัง']]],
+ ['ม่านความเย็น (CC)',[['curtainF','ม่านความเย็น ด้านหน้า'],['curtainB','ม่านความเย็น ด้านหลัง']]],['อื่นๆ',[['dashcam','กล้องหน้ารถ'],['damage','จุดที่ผิดปกติ (ทุกรูป)']]]];
+var SEL={zone:'all',dc:'all',type:'all',plates:'',only:false,ph:{front:1,back:1,left:1,right:1},sec:{kpi:1,zone:1,dc:0,cars:1}};
+function phKeys(v){var out=[];PHG.forEach(function(g){g[1].forEach(function(p){if(!SEL.ph[p[0]])return;if(p[0]==='damage')Object.keys(v._ph||{}).filter(function(k){return/^damage\d+$/.test(k)}).forEach(function(k){out.push([k,nameOf(k)])});else if(v._ph&&v._ph[p[0]])out.push(p)})});return out}
 function pick(){var pl=SEL.plates.split(/[\s,]+/).map(function(s){return s.trim()}).filter(Boolean);
  return vehicles.filter(function(v){return(SEL.zone==='all'||v.zone===SEL.zone)&&(SEL.dc==='all'||v.dc===SEL.dc)&&(SEL.type==='all'||v.type===SEL.type)&&(!pl.length||pl.indexOf(v.plate)>=0)&&(!SEL.only||Object.keys(v.photos||{}).length)})}
 function canDC(){return ADMIN||OPT.dcpage}
@@ -200,13 +206,16 @@ function shareModal(){var m=document.createElement('div');m.className='modal-bg 
   '<div class="fi-row" style="margin-top:8px"><div class="fg" style="margin:0"><label>ชนิด</label><select class="fi" data-s="type"><option value="all">ทุกชนิด</option><option value="AB"'+(SEL.type==='AB'?' selected':'')+'>AB รถแห้ง</option><option value="CC"'+(SEL.type==='CC'?' selected':'')+'>CC รถเย็น</option></select></div><div class="fg" style="margin:0"><label>ทะเบียน (เว้นว่าง = ทุกคัน)</label><input class="fi" data-s="plates" placeholder="3ฒข-1306, 2ฒฮ-7671" value="'+h(SEL.plates)+'"></div></div>'+
   ck('only','เฉพาะรถที่มีรูปแล้ว',SEL.only)+
   '<div class="fpx-h" style="margin-top:10px"><span>2. หัวข้อสรุป (Excel / PowerPoint / ข้อความ)</span></div>'+ck('sec.kpi','จำนวนรวม + มูลค่ารวม',SEL.sec.kpi)+ck('sec.zone','แยกภาค และแยกชนิด',SEL.sec.zone)+(canDC()?ck('sec.dc','แยกตาม DC',SEL.sec.dc):'')+ck('sec.cars','รายการรถรายคัน',SEL.sec.cars)+
-  '<div class="fpx-h" style="margin-top:10px"><span>3. ด้านของรูปรถ (PowerPoint / รูปรถ)</span></div><div style="display:flex;flex-wrap:wrap;gap:4px 16px">'+SLOTS.map(function(s){return ck('side.'+s.col,s.name,SEL.sides[s.col])}).join('')+'</div>'+
+  '<div class="fpx-h" style="margin-top:10px"><span>3. รูปที่จะใส่ (PowerPoint / รูปรถรายคัน)</span><span><button type="button" class="tlink" data-pha="1">เลือกทั้งหมด</button> · <button type="button" class="tlink" data-pha="0">ล้าง</button></span></div>'+
+  (ADMIN?'':'<p class="fpx-note" style="margin:0 0 4px">รูปที่แอดมินซ่อนไว้จะไม่ถูกใส่ แม้จะติ๊กเลือก</p>')+
+  PHG.map(function(g){return'<div style="padding:4px 0;border-top:1px solid var(--ln)"><div class="fpx-note" style="margin:2px 0;font-weight:600;color:var(--t2)">'+h(g[0])+'</div><div style="display:flex;flex-wrap:wrap;gap:0 16px">'+g[1].map(function(p){return ck('ph.'+p[0],p[1],SEL.ph[p[0]])}).join('')+'</div></div>'}).join('')+
   '<div class="fpx-h" style="margin-top:12px"><span>4. ส่งออก</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">'+
   [['ig','อินโฟกราฟิก 16:9'],['png','รูปรถรายคัน (ZIP)'],['pptx','PowerPoint'],['xlsx','Excel'],['txt','ข้อความ (LINE)']].map(function(x){return'<button type="button" class="mbtn ok" data-x="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<div class="modal-actions"><button class="mbtn cancel" type="button" data-close>ปิด</button></div></div>';
  document.body.appendChild(m);var cnt=function(){var l=pick();m.querySelector('#fpxCnt').textContent='เลือกไว้ '+l.length+' คัน'};cnt();
  m.querySelectorAll('[data-s]').forEach(function(el){el.oninput=el.onchange=function(){SEL[el.dataset.s]=el.value;cnt()}});
- m.querySelectorAll('[data-c]').forEach(function(el){el.onchange=function(){var p=el.dataset.c.split('.');if(p[0]==='only')SEL.only=el.checked;else if(p[0]==='sec')SEL.sec[p[1]]=el.checked?1:0;else SEL.sides[p[1]]=el.checked?1:0;cnt()}});
+ m.querySelectorAll('[data-c]').forEach(function(el){el.onchange=function(){var p=el.dataset.c.split('.');if(p[0]==='only')SEL.only=el.checked;else if(p[0]==='sec')SEL.sec[p[1]]=el.checked?1:0;else SEL.ph[p[1]]=el.checked?1:0;cnt()}});
+ m.querySelectorAll('[data-pha]').forEach(function(b){b.onclick=function(){var on=b.dataset.pha==='1';m.querySelectorAll('[data-c^="ph."]').forEach(function(el){el.checked=on;SEL.ph[el.dataset.c.slice(3)]=on?1:0})}});
  m.querySelector('[data-close]').onclick=function(){m.remove()};m.onclick=function(e){if(e.target===m)m.remove()};
  m.querySelectorAll('[data-x]').forEach(function(b){b.onclick=async function(){var l=pick();if(!l.length){toast('ไม่มีรถตามที่เลือก','err');return}b.disabled=true;
   try{await({ig:expIG,png:expPNG,pptx:expPPTX,xlsx:expXLSX,txt:expTXT})[b.dataset.x](l)}catch(e){console.error(e);toast('❌ '+(e.message||'ส่งออกไม่สำเร็จ'),'err')}b.disabled=false}})}
@@ -230,17 +239,27 @@ async function expXLSX(l){await xlsxLib();var wb=XLSX.utils.book_new(),A=agg(l),
  if(SEL.sec.cars)add('รายคัน',[['ทะเบียน','ภาค','DC','ชนิด','ปีรถ','ราคา'].concat(SLOTS.map(function(s){return'รูป '+s.name}))].concat(l.map(function(v){return[v.plate,v.zone,'DC '+v.dc,v.type,v.year||'',num(v.price)||''].concat(SLOTS.map(function(s){var id=v._ph&&v._ph[COL[s.col]];return id?'https://drive.google.com/file/d/'+id+'/view':''}))})));
  if(!wb.SheetNames.length)throw new Error('เลือกหัวข้ออย่างน้อย 1 หัวข้อ');
  var out=XLSX.write(wb,{bookType:'xlsx',type:'array'});await save(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'NIMEX-Fleet-Catalog-'+stamp()+'.xlsx')}
-async function withSides(v){var p={};for(var n in COL){if(!SEL.sides[n])continue;var id=v._ph&&v._ph[COL[n]];if(id){try{var d=await dataOf(id);if(d)p[n]=d}catch(e){}}}return Object.assign({},v,{photos:p})}
+/* chosen photos as data URLs: the 4 sides go to the original slide (photos[1..4]); everything else becomes extra slides / tiles (_sel) */
+async function withSides(v){var p={},sel=[];for(var it of phKeys(v)){try{var d=await dataOf(v._ph[it[0]]);if(!d)continue;sel.push([it[0],it[1],d]);var col=Object.keys(COL).find(function(n){return COL[n]===it[0]});if(col)p[col]=d}catch(e){}}return Object.assign({},v,{photos:p,_sel:sel})}
+var _bs=buildSlide;buildSlide=async function(prs,v){await _bs(prs,v);var ex=(v._sel||[]).filter(function(s){return!['front','back','left','right'].includes(s[0])});
+ for(var i=0;i<ex.length;i+=6){var sl=prs.addSlide();sl.background={color:'f5f7fb'};sl.addShape(prs.ShapeType.rect,{x:0,y:0,w:10,h:0.62,fill:{color:'0a2a5e'},line:{color:'0a2a5e'}});sl.addShape(prs.ShapeType.rect,{x:0,y:0.62,w:10,h:0.05,fill:{color:'d4af37'},line:{color:'d4af37'}});
+  sl.addText(v.plate+'  ·  DC '+v.dc+'  ·  รูปเพิ่มเติม'+(ex.length>6?' ('+(i/6+1)+')':''),{x:0.3,y:0.1,w:9.4,h:0.42,fontSize:18,bold:true,color:'ffffff',fontFace:'Prompt'});
+  ex.slice(i,i+6).forEach(function(s,j){var X=0.3+(j%3)*3.15,Y=0.85+Math.floor(j/3)*2.4,w=3.0,hh=2.05;sl.addShape(prs.ShapeType.rect,{x:X,y:Y,w:w,h:hh+0.28,fill:{color:'ffffff'},line:{color:'dde3ed',pt:1}});
+   sl.addImage({data:s[2].replace(/^data:/,''),x:X+0.04,y:Y+0.04,w:w-0.08,h:hh-0.04,sizing:{type:'cover',w:w-0.08,h:hh-0.04}});sl.addShape(prs.ShapeType.rect,{x:X,y:Y+hh,w:w,h:0.28,fill:{color:'123f8c'},line:{color:'123f8c'}});
+   sl.addText(s[1],{x:X+0.1,y:Y+hh,w:w-0.2,h:0.28,fontSize:10,color:'ffffff',bold:true,valign:'middle',fontFace:'Prompt'})})}};
 async function mapLimit(list,fn){var out=new Array(list.length),i=0,done=0;await Promise.all([0,1,2,3].map(async function(){while(i<list.length){var k=i++;out[k]=await fn(list[k]);done++;if(done%10===0)toast('⏳ เตรียมรูป '+done+'/'+list.length,'info')}}));return out}
 async function expPPTX(l){loading(true);try{var cars=await mapLimit(l,withSides),orig=vehicles;vehicles=cars;try{if(l.length===1)await _eo(l[0].plate);else await _ea()}finally{vehicles=orig}}finally{loading(false)}}
 function loadImg(src){return new Promise(function(res){if(!src)return res(null);var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=src})}
 function rr(x,X,Y,w,hh,r){x.beginPath();x.roundRect(X,Y,w,hh,r)}
 function coverImg(x,img,X,Y,w,hh,r){x.save();rr(x,X,Y,w,hh,r||12);x.clip();if(img){var s=Math.max(w/img.width,hh/img.height);x.drawImage(img,X+(w-img.width*s)/2,Y+(hh-img.height*s)/2,img.width*s,img.height*s)}else{x.fillStyle='#e9eef7';x.fillRect(X,Y,w,hh);x.fillStyle='#7a8aa5';x.font='500 26px Prompt';x.textAlign='center';x.textBaseline='middle';x.fillText('ไม่มีรูป',X+w/2,Y+hh/2)}x.restore()}
-async function carPNG(v,logo){var W=1600,H=1000,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.fillStyle='#eef2f9';x.fillRect(0,0,W,H);
+async function carPNG(v,logo){var W=1920,H=1080,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.fillStyle='#eef2f9';x.fillRect(0,0,W,H);
  x.fillStyle='#0a2a5e';x.fillRect(0,0,W,150);x.fillStyle='#d4af37';x.fillRect(0,150,W,6);if(logo){x.fillStyle='#fff';rr(x,24,20,220,110,16);x.fill();var s=Math.min(200/logo.width,90/logo.height);x.drawImage(logo,24+(220-logo.width*s)/2,20+(110-logo.height*s)/2,logo.width*s,logo.height*s)}
  x.fillStyle='#fff';x.font='600 64px Prompt';x.textAlign='left';x.textBaseline='middle';x.fillText(v.plate,280,62);x.font='500 30px Prompt';x.fillStyle='#e6d79c';x.fillText(['DC '+v.dc,v.zone,v.type==='AB'?'AB รถแห้ง':v.type==='CC'?'CC รถเย็น':v.type,v.year?'ปี '+v.year:'',v.price?baht(num(v.price)):''].filter(Boolean).join(' · '),282,118,W-310);
- var sides=SLOTS.filter(function(s){return SEL.sides[s.col]}),n=sides.length||1,cols=n===1?1:2,rows=Math.ceil(n/cols),gw=(W-48-(cols-1)*20)/cols,gh=(H-190-(rows-1)*20)/rows;
- for(var i=0;i<sides.length;i++){var X=24+(i%cols)*(gw+20),Y=176+Math.floor(i/cols)*(gh+20);coverImg(x,await loadImg(v.photos[sides[i].col]),X,Y,gw,gh,14);x.fillStyle='rgba(6,26,61,.8)';rr(x,X+14,Y+gh-54,220,40,20);x.fill();x.fillStyle='#fff';x.font='500 24px Prompt';x.textAlign='center';x.fillText(sides[i].name,X+124,Y+gh-33)}
+ /* grid sized to the number of chosen photos */
+ var sel=v._sel||[],n=sel.length||1,cols=n===1?1:n<=4?2:n<=9?3:n<=16?4:5,rows=Math.ceil(n/cols),gap=16,gw=(W-48-(cols-1)*gap)/cols,gh=(H-184-(rows-1)*gap)/rows;
+ if(!sel.length){x.fillStyle='#7a8aa5';x.font='500 32px Prompt';x.textAlign='center';x.fillText('ยังไม่มีรูปที่เลือกสำหรับรถคันนี้',W/2,H/2)}
+ for(var i=0;i<sel.length;i++){var X=24+(i%cols)*(gw+gap),Y=172+Math.floor(i/cols)*(gh+gap);coverImg(x,await loadImg(sel[i][2]),X,Y,gw,gh,14);var fs=Math.max(16,Math.min(24,gh/9));x.font='500 '+fs+'px Prompt';var tw=x.measureText(sel[i][1]).width+28;
+  x.fillStyle='rgba(6,26,61,.85)';rr(x,X+10,Y+gh-fs*1.8-10,tw,fs*1.8,fs*0.9);x.fill();x.fillStyle='#fff';x.textAlign='left';x.textBaseline='middle';x.fillText(sel[i][1],X+24,Y+gh-fs*0.9-10)}
  return await new Promise(function(res){c.toBlob(res,'image/png')})}
 async function expPNG(l){if(!window.JSZip)throw new Error('ไม่พบตัวสร้าง ZIP');loading(true);try{try{await document.fonts.load('600 40px Prompt')}catch(e){}var logo=await loadImg('logo.png'),cars=await mapLimit(l,withSides),zip=new JSZip();
  for(var i=0;i<cars.length;i++){zip.file('NIMEX-'+cars[i].plate+'.png',await carPNG(cars[i],logo));if(i%10===9)toast('⏳ สร้างรูป '+(i+1)+'/'+cars.length,'info')}
