@@ -78,6 +78,7 @@ function start(admin){ADMIN=!!admin;document.body.classList.toggle('fpc-admin',A
 /* ---------- detail: extra photo groups + admin info ---------- */
 var _bd=buildDetail;
 buildDetail=function(v){window._fpxOpen=v.plate;var out=_bd(v);if(!v._c)return out;var ph=v._ph||{};
+ out+='<div class="fpx-sec" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span style="flex:1;min-width:180px"><b style="color:var(--t1);font-size:14px">รูปสรุปรถคันนี้ 16:9</b><br><span class="fpx-note" style="margin:0">เลือกใส่ปีรถ / ราคา และรูปที่ต้องการได้</span></span><button class="hbtn" type="button" id="fpxCar16" style="background:linear-gradient(180deg,#f0d57a,#d4af37);color:#0a2a5e;border:0;font-weight:600">ส่งออกรูป 16:9</button></div>';
  ['p4','eng','tyre','cab','dmg'].forEach(function(g){var ks=Object.keys(ph).filter(function(k){return grpOf(k)===g});if(g==='p4'&&!ADMIN)return;if(!ks.length)return;
   if(g==='p4'&&ADMIN){out+='<div class="fpx-sec"><div class="fpx-h"><span>'+h(GR[0][1])+'</span>'+badge(v.plate,g)+'</div><p class="fpx-note">รูปด้านบนคือรูปที่ผู้ชมเห็น เปลี่ยนหรือลบรูปได้ที่รูปด้านบน รูปที่แอดมินเปลี่ยนจะใช้แทนรูปจากการตรวจ</p></div>';return}
   out+='<div class="fpx-sec"><div class="fpx-h"><span>'+h(GR.filter(function(x){return x[0]===g})[0][1])+'</span>'+(ADMIN?badge(v.plate,g):'')+'</div><div class="fpx-grid">'+ks.map(function(k){var id=ph[k];return'<button type="button" class="fpx-ph" style="background-image:url(\''+th(id,600)+'\')" data-lb="'+h(th(id,1800))+'" data-cap="'+h(v.plate+' — '+nameOf(k))+'"><span>'+h(nameOf(k))+'</span></button>'}).join('')+'</div></div>'});
@@ -97,6 +98,7 @@ function perHtml(v){var p=SET.per[v.plate]||{};
  return'<div class="fpx-sec" id="fpxPer"><div class="fpx-h"><span>การแสดงผลของรถคันนี้</span><span class="fpx-b adm">เฉพาะแอดมิน</span></div><p class="fpx-note">"ตามทั้งหมด" = ใช้ค่าจากปุ่มตั้งค่าการแสดงผลด้านบน</p>'+
   GR.map(function(x){var k=x[0],cur=k in p?String(p[k]):'a';return'<div class="fpx-row"><span>'+h(x[1])+(k in p?'<span class="fpx-ov">ตั้งแยก</span>':'')+'</span><span class="fpx-seg" data-pk="'+k+'">'+[['a','ตามทั้งหมด'],['1','แสดง'],['0','ซ่อน']].map(function(o){return'<button type="button" data-v="'+o[0]+'" aria-pressed="'+(cur===o[0])+'">'+o[1]+'</button>'}).join('')+'</span></div>'}).join('')+'</div>'}
 function wire(){document.querySelectorAll('.fpx-ph[data-lb]').forEach(function(b){b.onclick=function(){openLB(b.dataset.lb,b.dataset.cap)}});
+ var c16=document.getElementById('fpxCar16');if(c16)c16.onclick=function(){var v=vehicles.find(function(x){return x.plate===window._fpxOpen});if(v)carModal(v)};
  document.querySelectorAll('#fpxPer [data-pk] button').forEach(function(b){b.onclick=async function(){var k=b.parentElement.dataset.pk,pl=window._fpxOpen,p=SET.per[pl]=SET.per[pl]||{};
   if(b.dataset.v==='a')delete p[k];else p[k]=+b.dataset.v;if(!Object.keys(p).length)delete SET.per[pl];
   try{await post({a:'set',k:'cat',v:SET});toast('✅ บันทึกการแสดงผลแล้ว','ok')}catch(e){toast('❌ บันทึกไม่สำเร็จ','err')}openDetail(pl)}})}
@@ -318,15 +320,46 @@ async function expLong(l){loading(true);try{try{await document.fonts.load('600 3
   if(t.note)tx(t.note,X0,y+20,F(400,16),'#55657f');Y+=lo.h+24});
  tx('NIMEX Fleet Planning Catalog · สร้างเมื่อ '+new Date().toLocaleString('th-TH'),W/2,H-26,F(400,16),'#7a8aa5','center');
  await save(await new Promise(function(res){c.toBlob(res,'image/png')}),'NIMEX-Fleet-Summary-'+stamp()+'.png')}finally{loading(false)}}
-async function carPNG(v,logo){var W=1920,H=1080,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.fillStyle='#eef2f9';x.fillRect(0,0,W,H);
- x.fillStyle='#0a2a5e';x.fillRect(0,0,W,150);x.fillStyle='#d4af37';x.fillRect(0,150,W,6);if(logo){x.fillStyle='#fff';rr(x,24,20,220,110,16);x.fill();var s=Math.min(200/logo.width,90/logo.height);x.drawImage(logo,24+(220-logo.width*s)/2,20+(110-logo.height*s)/2,logo.width*s,logo.height*s)}
- x.fillStyle='#fff';x.font='600 64px Prompt';x.textAlign='left';x.textBaseline='middle';x.fillText(v.plate,280,62);x.font='500 30px Prompt';x.fillStyle='#e6d79c';x.fillText(['DC '+v.dc,v.zone,v.type==='AB'?'AB รถแห้ง':v.type==='CC'?'CC รถเย็น':v.type,v.year?'ปี '+v.year:'',v.price?baht(num(v.price)):''].filter(Boolean).join(' · '),282,118,W-310);
- /* grid sized to the number of chosen photos */
- var sel=v._sel||[],n=sel.length||1,cols=n===1?1:n<=4?2:n<=9?3:n<=16?4:5,rows=Math.ceil(n/cols),gap=16,gw=(W-48-(cols-1)*gap)/cols,gh=(H-184-(rows-1)*gap)/rows;
- if(!sel.length){x.fillStyle='#7a8aa5';x.font='500 32px Prompt';x.textAlign='center';x.fillText('ยังไม่มีรูปที่เลือกสำหรับรถคันนี้',W/2,H/2)}
- for(var i=0;i<sel.length;i++){var X=24+(i%cols)*(gw+gap),Y=172+Math.floor(i/cols)*(gh+gap);fitImg(x,await loadImg(sel[i][2]),X,Y,gw,gh,14);var fs=Math.max(16,Math.min(24,gh/9));x.font='500 '+fs+'px Prompt';var tw=x.measureText(sel[i][1]).width+28;
-  x.fillStyle='rgba(6,26,61,.85)';rr(x,X+10,Y+gh-fs*1.8-10,tw,fs*1.8,fs*0.9);x.fill();x.fillStyle='#fff';x.textAlign='left';x.textBaseline='middle';x.fillText(sel[i][1],X+24,Y+gh-fs*0.9-10)}
+/* one car, 1920x1080: header (logo, plate, DC / region / type, optional year and price boxes), photos in an even grid, footer.
+   opt.yr / opt.pr choose whether year and price are printed (only when the car has them and this viewer may see them). */
+async function carPNG(v,logo,opt){opt=opt||{yr:1,pr:1};try{await document.fonts.load('600 40px Prompt');await document.fonts.load('500 20px Prompt')}catch(e){}
+ var W=1920,H=1080,HD=176,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
+ var tx=function(t,X,Y,font,col,al,max){x.font=font;x.fillStyle=col;x.textAlign=al||'left';x.textBaseline='middle';x.fillText(String(t),X,Y,max)};
+ x.fillStyle='#eef2f9';x.fillRect(0,0,W,H);x.fillStyle='#0a2a5e';x.fillRect(0,0,W,HD);x.fillStyle='#d4af37';x.fillRect(0,HD,W,6);
+ x.fillStyle='#fff';rr(x,28,28,220,120,16);x.fill();if(logo){var s=Math.min(196/logo.width,100/logo.height);x.drawImage(logo,28+(220-logo.width*s)/2,28+(120-logo.height*s)/2,logo.width*s,logo.height*s)}
+ /* year / price boxes on the right of the header */
+ var info=[];if(opt.yr&&v.year)info.push(['ปีรถ',String(v.year)]);if(opt.pr&&num(v.price))info.push(['ราคา',baht(num(v.price))]);
+ var bw=290,bx=W-28;info.slice().reverse().forEach(function(it){bx-=bw;x.fillStyle='rgba(255,255,255,.08)';rr(x,bx,28,bw,120,16);x.fill();x.strokeStyle='#d4af37';x.lineWidth=2;rr(x,bx+1,29,bw-2,118,15);x.stroke();
+  tx(it[0],bx+bw/2,62,'500 22px Prompt, sans-serif','#d9c98a','center');tx(it[1],bx+bw/2,108,'600 44px Prompt, sans-serif','#fff','center',bw-28);bx-=16});
+ var tmax=(info.length?bx:W-28)-292;
+ tx(v.plate,284,76,'600 68px Prompt, sans-serif','#fff','left',tmax);
+ tx(['DC '+v.dc,v.zone,v.type==='AB'?'AB รถแห้ง':v.type==='CC'?'CC รถเย็น':v.type].filter(Boolean).join('  ·  '),286,138,'500 28px Prompt, sans-serif','#e6d79c','left',tmax);
+ /* photos: even grid sized to how many there are */
+ var sel=v._sel||[],n=sel.length||1,cols=n===1?1:n<=4?2:n<=6?3:n<=12?4:5,rows=Math.ceil(n/cols),gap=18,T=HD+6+24,B=H-56,gw=(W-56-(cols-1)*gap)/cols,gh=(B-T-(rows-1)*gap)/rows;
+ if(!sel.length)tx('ยังไม่มีรูปของรถคันนี้',W/2,(T+B)/2,'500 32px Prompt, sans-serif','#7a8aa5','center');
+ for(var i=0;i<sel.length;i++){var r=Math.floor(i/cols),inRow=Math.min(cols,sel.length-r*cols),X=28+(W-56-(inRow*gw+(inRow-1)*gap))/2+(i%cols)*(gw+gap),Y=T+r*(gh+gap);
+  x.fillStyle='rgba(10,42,94,.08)';rr(x,X+2,Y+4,gw,gh,16);x.fill();fitImg(x,await loadImg(sel[i][2]),X,Y,gw,gh,16);
+  var fs=Math.round(Math.max(16,Math.min(26,gh/10)));x.font='600 '+fs+'px Prompt, sans-serif';var tw=Math.min(gw-24,x.measureText(sel[i][1]).width+32),ch=fs*1.8;
+  x.fillStyle='rgba(6,26,61,.86)';rr(x,X+14,Y+gh-ch-14,tw,ch,ch/2);x.fill();x.fillStyle='#d4af37';rr(x,X+14,Y+gh-ch-14,6,ch,3);x.fill();tx(sel[i][1],X+30,Y+gh-ch/2-14,'600 '+fs+'px Prompt, sans-serif','#fff','left',tw-28)}
+ tx('NIMEX Fleet Planning Catalog',28,H-26,'500 18px Prompt, sans-serif','#55657f');tx('ข้อมูล ณ '+new Date().toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}),W-28,H-26,'400 18px Prompt, sans-serif','#55657f','right');
  return await new Promise(function(res){c.toBlob(res,'image/png')})}
+/* photo order for "every photo" */
+var PH_ORDER=['front','back','left','right','engine','battery','odo','tFL','tFR','tRL','tRR','dFL','dFR','dRL','dRR','spare','cabin','boxF','boxB','curtainF','curtainB','curtain','dashcam'];
+/* detail page: export this car as one 16:9 image; the viewer picks year / price and which photos */
+function carModal(v){var m=document.createElement('div');m.className='modal-bg on';var hasY=!!v.year,hasP=!!num(v.price),ph=v._ph||{};
+ var nAll=PH_ORDER.filter(function(k){return ph[k]}).length+Object.keys(ph).filter(function(k){return/^damage\d+$/.test(k)}).length,n4=['front','back','left','right'].filter(function(k){return ph[k]}).length;
+ var ck=function(id,lbl,on,dis,sub){return'<label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--t1);padding:7px 0;border-top:1px solid var(--ln)'+(dis?';opacity:.5':'')+'"><input type="checkbox" data-o="'+id+'"'+(on?' checked':'')+(dis?' disabled':'')+'><span>'+lbl+(sub?'<br><small style="color:var(--t3)">'+sub+'</small>':'')+'</span></label>'};
+ var rd=function(val,lbl,on){return'<label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--t1);padding:7px 0;border-top:1px solid var(--ln)"><input type="radio" name="fpxPh" value="'+val+'"'+(on?' checked':'')+'><span>'+lbl+'</span></label>'};
+ m.innerHTML='<div class="modal" style="max-width:440px"><div class="modal-title">ส่งออกรูป 16:9 · '+h(v.plate)+'</div>'+
+  '<div class="fpx-h" style="margin-top:4px"><span>ข้อมูลบนรูป</span></div>'+ck('yr','ปีรถ'+(hasY?' ('+h(v.year)+')':''),hasY,!hasY,hasY?'':'ไม่มีข้อมูล หรือแอดมินซ่อนไว้')+ck('pr','ราคา'+(hasP?' ('+baht(num(v.price))+')':''),hasP,!hasP,hasP?'':'ไม่มีข้อมูล หรือแอดมินซ่อนไว้')+
+  '<div class="fpx-h" style="margin-top:12px"><span>รูปที่ใส่</span></div>'+rd('4','รูปรถ 4 ด้าน ('+n4+' รูป)',true)+rd('all','ทุกรูปที่ดูได้ ('+nAll+' รูป)',false)+
+  '<div class="modal-actions"><button class="mbtn cancel" type="button" data-x>ยกเลิก</button><button class="mbtn ok" type="button" data-go>ส่งออก PNG</button></div></div>';
+ document.body.appendChild(m);m.querySelector('[data-x]').onclick=function(){m.remove()};m.onclick=function(e){if(e.target===m)m.remove()};
+ m.querySelector('[data-go]').onclick=async function(){var b=this,o={yr:m.querySelector('[data-o="yr"]').checked,pr:m.querySelector('[data-o="pr"]').checked},all=m.querySelector('input[name="fpxPh"]:checked').value==='all';b.disabled=true;loading(true);
+  try{var keys=(all?PH_ORDER:['front','back','left','right']).filter(function(k){return ph[k]});if(all)keys=keys.concat(Object.keys(ph).filter(function(k){return/^damage\d+$/.test(k)}).sort());
+   var sel=[];for(var i=0;i<keys.length;i++){try{var d=await dataOf(ph[keys[i]]);if(d)sel.push([keys[i],nameOf(keys[i]),d])}catch(e){}}
+   var logo=await loadImg('logo.png');await save(await carPNG(Object.assign({},v,{_sel:sel}),logo,o),'NIMEX-'+v.plate+'.png');m.remove()}
+  catch(e){console.error(e);toast('❌ ส่งออกไม่สำเร็จ','err');b.disabled=false}finally{loading(false)}}}
 async function expPNG(l){if(!window.JSZip)throw new Error('ไม่พบตัวสร้าง ZIP');loading(true);try{try{await document.fonts.load('600 40px Prompt')}catch(e){}var logo=await loadImg('logo.png'),cars=await mapLimit(l,withSides),zip=new JSZip();
  for(var i=0;i<cars.length;i++){zip.file('NIMEX-'+cars[i].plate+'.png',await carPNG(cars[i],logo));if(i%10===9)toast('⏳ สร้างรูป '+(i+1)+'/'+cars.length,'info')}
  if(cars.length===1)await save(await carPNG(cars[0],logo),'NIMEX-'+cars[0].plate+'.png');else await save(await zip.generateAsync({type:'blob'}),'NIMEX-Fleet-Cars-'+stamp()+'.zip')}finally{loading(false)}}
@@ -344,17 +377,27 @@ async function expIG(l){loading(true);try{var A=agg(l),logo=await dataURL('logo.
  /* rows spread over the whole panel (a short list no longer leaves a half-empty card); each bar = AB (gold) + CC (blue) on a light track */
  var bars=function(X,Y,w,hh,items,val,fmtv){var mx=Math.max.apply(null,items.map(function(i){return val(i)[0]+val(i)[1]}).concat([1])),top=Y+70,ah=hh-90,n=Math.max(items.length,1),slot=ah/n,bh=Math.min(44,Math.max(14,slot*0.55)),tw=w-200-170,o='';
   o+='<rect x="'+(X+w-300)+'" y="'+(Y+58)+'" width="14" height="14" rx="3" fill="#b8860b"/><text x="'+(X+w-280)+'" y="'+(Y+70)+'" font-size="16" fill="#55657f">AB รถแห้ง</text><rect x="'+(X+w-170)+'" y="'+(Y+58)+'" width="14" height="14" rx="3" fill="#1d57b8"/><text x="'+(X+w-150)+'" y="'+(Y+70)+'" font-size="16" fill="#55657f">CC รถเย็น</text>';
-  top+=14;slot=(ah-14)/n;bh=Math.min(44,Math.max(14,slot*0.55));
+  top+=14;slot=(ah-14)/n;bh=Math.min(44,Math.max(10,slot*0.55));var fz=Math.round(Math.min(22,Math.max(14,slot*0.8)));
   if(!items.length)o+='<text x="'+(X+w/2)+'" y="'+(Y+hh/2)+'" font-size="22" fill="#55657f" text-anchor="middle">ไม่มีข้อมูล</text>';
-  items.forEach(function(it,i){var y=top+i*slot+(slot-bh)/2,v=val(it),w1=v[0]/mx*tw,w2=v[1]/mx*tw;o+='<text x="'+(X+24)+'" y="'+(y+bh/2+7)+'" font-size="'+(bh>30?22:19)+'" fill="#33445f">'+e(String(it[0]).slice(0,18))+'</text><rect x="'+(X+200)+'" y="'+y+'" width="'+tw+'" height="'+bh+'" rx="6" fill="#f1f4fa"/><rect x="'+(X+200)+'" y="'+y+'" width="'+Math.max(w1,0)+'" height="'+bh+'" rx="6" fill="#b8860b"/><rect x="'+(X+200+w1)+'" y="'+y+'" width="'+Math.max(w2,0)+'" height="'+bh+'" rx="6" fill="#1d57b8"/><text x="'+(X+212+tw)+'" y="'+(y+bh/2+7)+'" font-size="'+(bh>30?22:19)+'" fill="#0b1f3f" font-weight="600">'+e(fmtv(v[0]+v[1]))+'</text>'});return o};
- s+=panel(40,350,910,330,'จำนวนรถแยกภาค (AB / CC)')+bars(40,350,910,330,zs,function(x){return[x[1].AB,x[1].CC]},function(n){return n+' คัน'});
- s+=panel(970,350,910,330,'มูลค่ารวมแยกภาค (AB / CC)')+bars(970,350,910,330,zs,function(x){return[x[1].vAB,x[1].vCC]},function(n){return n?baht(n):'—'});
+  items.forEach(function(it,i){var y=top+i*slot+(slot-bh)/2,v=val(it),w1=v[0]/mx*tw,w2=v[1]/mx*tw;o+='<text x="'+(X+24)+'" y="'+(y+bh/2+7)+'" font-size="'+fz+'" fill="#33445f">'+e(String(it[0]).slice(0,18))+'</text><rect x="'+(X+200)+'" y="'+y+'" width="'+tw+'" height="'+bh+'" rx="6" fill="#f1f4fa"/><rect x="'+(X+200)+'" y="'+y+'" width="'+Math.max(w1,0)+'" height="'+bh+'" rx="6" fill="#b8860b"/><rect x="'+(X+200+w1)+'" y="'+y+'" width="'+Math.max(w2,0)+'" height="'+bh+'" rx="6" fill="#1d57b8"/><text x="'+(X+212+tw)+'" y="'+(y+bh/2+7)+'" font-size="'+fz+'" fill="#0b1f3f" font-weight="600">'+e(fmtv(v[0]+v[1]))+'</text>'});return o};
+ /* every region as one tall table on the right (12+ regions do not fit as bar rows); the two smaller panels sit on the left */
+ (function(){var X=970,Y=350,PW=910,H2=680,n=Math.max(zs.length,1),top=Y+118,rh=Math.min(54,(H2-118-64)/n),fs=rh>=40?20:rh>=30?18:15,mx=Math.max.apply(null,zs.map(function(z){return z[1].n}).concat([1])),C={name:X+24,ab:X+250,cc:X+320,bar:X+372,barW:250,val:X+PW-24};
+  s+=panel(X,Y,PW,H2,'แยกภาค (AB / CC)')+'<text x="'+C.name+'" y="'+(Y+92)+'" font-size="16" fill="#55657f">ภาค</text><text x="'+C.ab+'" y="'+(Y+92)+'" font-size="16" fill="#55657f" text-anchor="middle">AB</text><text x="'+C.cc+'" y="'+(Y+92)+'" font-size="16" fill="#55657f" text-anchor="middle">CC</text><text x="'+C.bar+'" y="'+(Y+92)+'" font-size="16" fill="#55657f">จำนวนรถ</text><text x="'+C.val+'" y="'+(Y+92)+'" font-size="16" fill="#55657f" text-anchor="end">มูลค่ารวม</text><line x1="'+(X+20)+'" x2="'+(X+PW-20)+'" y1="'+(Y+106)+'" y2="'+(Y+106)+'" stroke="#dbe3f0"/>';
+  var row=function(lbl,a,y,strong,f){f=f||fs;var mid=y+rh/2+f*0.36,bh=Math.max(8,Math.min(16,rh*0.36)),w1=a.AB/mx*C.barW,w2=a.CC/mx*C.barW,fw=strong?600:400;
+   return'<text x="'+C.name+'" y="'+mid+'" font-size="'+f+'" font-weight="'+(strong?600:500)+'" fill="#0b1f3f">'+e(String(lbl).slice(0,14))+'</text><text x="'+C.ab+'" y="'+mid+'" font-size="'+f+'" font-weight="'+fw+'" fill="#0b1f3f" text-anchor="middle">'+a.AB+'</text><text x="'+C.cc+'" y="'+mid+'" font-size="'+f+'" font-weight="'+fw+'" fill="#0b1f3f" text-anchor="middle">'+a.CC+'</text>'+
+    (strong?'':'<rect x="'+C.bar+'" y="'+(y+(rh-bh)/2)+'" width="'+C.barW+'" height="'+bh+'" rx="'+(bh/2)+'" fill="#e9eef7"/><rect x="'+C.bar+'" y="'+(y+(rh-bh)/2)+'" width="'+w1+'" height="'+bh+'" fill="#b8860b"/><rect x="'+(C.bar+w1)+'" y="'+(y+(rh-bh)/2)+'" width="'+w2+'" height="'+bh+'" fill="#1d57b8"/>')+
+    '<text x="'+(strong?C.bar:C.bar+C.barW+12)+'" y="'+mid+'" font-size="'+f+'" font-weight="600" fill="#0b1f3f">'+a.n+' คัน</text><text x="'+C.val+'" y="'+mid+'" font-size="'+f+'" font-weight="'+fw+'" fill="#0b1f3f" text-anchor="end">'+(a.val?baht(a.val):'—')+'</text>'};
+  zs.forEach(function(z,i){var y=top+i*rh;if(i%2)s+='<rect x="'+(X+12)+'" y="'+y+'" width="'+(PW-24)+'" height="'+rh+'" rx="8" fill="#f5f7fb"/>';s+=row(z[0],z[1],y)});
+  if(!zs.length)s+='<text x="'+(X+PW/2)+'" y="'+(Y+H2/2)+'" font-size="22" fill="#55657f" text-anchor="middle">ไม่มีข้อมูล</text>';
+  var yt=Y+H2-60;s+='<line x1="'+(X+20)+'" x2="'+(X+PW-20)+'" y1="'+(yt-4)+'" y2="'+(yt-4)+'" stroke="#0a2a5e" stroke-width="1.5"/>'+row('รวม',A,yt,true,Math.max(fs,18))})();
+ s+='<g transform="translate(0,-350)">';
  if(canDC())s+=panel(40,700,910,330,'10 DC ที่มีรถมากที่สุด')+bars(40,700,910,330,ds.map(function(x){return['DC '+x[0],x[1]]}),function(x){return[x[1].AB,x[1].CC]},function(n){return n+' คัน'});
  else s+=panel(40,700,910,330,'สัดส่วนชนิดรถ')+bars(40,700,910,330,[['AB รถแห้ง',{AB:A.AB,CC:0}],['CC รถเย็น',{AB:0,CC:A.CC}]],function(x){return[x[1].AB,x[1].CC]},function(n){return n+' คัน'});
+ s+='</g>';
  var pr=A.n?A.ph/A.n:0,cx=1220,cy=885,R=110,a=pr*2*Math.PI,lAB=l.filter(function(v){return v.type==='AB'}),lCC=l.filter(function(v){return v.type==='CC'}),gAB=agg(lAB),gCC=agg(lCC);
  var side=[['#1d57b8','มีรูปครบ 4 ด้าน',A.ph+' คัน'],['#e9eef7','ยังไม่ครบ',(A.n-A.ph)+' คัน'],['#b8860b','AB รถแห้ง',gAB.ph+' / '+gAB.n+' คัน'],['#1d57b8','CC รถเย็น',gCC.ph+' / '+gCC.n+' คัน']].map(function(r,i){var y=812+i*56+(i>1?24:0);
   return'<rect x="1410" y="'+(y-16)+'" width="20" height="20" rx="5" fill="'+r[0]+'"'+(i===1?' stroke="#c9d3e3"':'')+'/><text x="1442" y="'+y+'" font-size="22" fill="#33445f">'+e(r[1])+'</text><text x="1840" y="'+y+'" font-size="22" font-weight="600" fill="#0b1f3f" text-anchor="end">'+e(r[2])+'</text>'}).join('')+'<line x1="1410" x2="1840" y1="904" y2="904" stroke="#dbe3f0"/>';
- s+=panel(970,700,910,330,'รถที่มีรูปครบ 4 ด้าน')+'<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="#e9eef7" stroke-width="36"/>'+(pr>0?'<path d="M '+cx+' '+(cy-R)+' A '+R+' '+R+' 0 '+(a>Math.PI?1:0)+' 1 '+(cx+R*Math.sin(a))+' '+(cy-R*Math.cos(a))+'" fill="none" stroke="#1d57b8" stroke-width="36"/>':'')+side+'<text x="'+cx+'" y="'+(cy+6)+'" font-size="44" font-weight="600" fill="#0b1f3f" text-anchor="middle">'+Math.round(pr*100)+'%</text><text x="'+cx+'" y="'+(cy+44)+'" font-size="22" fill="#55657f" text-anchor="middle">'+A.ph+' / '+A.n+' คัน</text>';
+ s+='<g transform="translate(-930,0)">'+panel(970,700,910,330,'รถที่มีรูปครบ 4 ด้าน')+'<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="#e9eef7" stroke-width="36"/>'+(pr>0?'<path d="M '+cx+' '+(cy-R)+' A '+R+' '+R+' 0 '+(a>Math.PI?1:0)+' 1 '+(cx+R*Math.sin(a))+' '+(cy-R*Math.cos(a))+'" fill="none" stroke="#1d57b8" stroke-width="36"/>':'')+side+'<text x="'+cx+'" y="'+(cy+6)+'" font-size="44" font-weight="600" fill="#0b1f3f" text-anchor="middle">'+Math.round(pr*100)+'%</text><text x="'+cx+'" y="'+(cy+44)+'" font-size="22" fill="#55657f" text-anchor="middle">'+A.ph+' / '+A.n+' คัน</text></g>';
  s+='<text x="40" y="1062" font-size="18" fill="#55657f">สีทอง = AB รถแห้ง · สีน้ำเงิน = CC รถเย็น · มูลค่ารวมคิดจากราคาที่บันทึกไว้เท่านั้น · รูปขึ้นเฉพาะรถที่แอดมินตรวจสอบแล้ว</text></svg>';
  var url=URL.createObjectURL(new Blob([s],{type:'image/svg+xml;charset=utf-8'})),img=await loadImg(url),c=document.createElement('canvas');c.width=W*2;c.height=H*2;var x=c.getContext('2d');x.scale(2,2);x.drawImage(img,0,0);URL.revokeObjectURL(url);
  await save(await new Promise(function(res){c.toBlob(res,'image/png')}),'NIMEX-Fleet-Infographic-'+stamp()+'.png')}finally{loading(false)}}
