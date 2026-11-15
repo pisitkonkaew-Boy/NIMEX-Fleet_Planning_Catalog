@@ -47,10 +47,12 @@ document.head.appendChild(css);
 document.body.classList.add('fpc-on');
 
 /* ---------- load ---------- */
-var ZONES=[],OPT={};
+var ZONES=[],OPT={},SHOWALL=false;
 function build(d){var dcn={},zn={};ZONES=[];(d.dcs||[]).forEach(function(x){dcn[String(x[0])]=String(x[1]).replace(/^C?DC\s*/,'');zn[String(x[0])]=String(x[2]);if(ZONES.indexOf(String(x[2]))<0)ZONES.push(String(x[2]))});
  RAW=d;RAW.carx=d.carx||{};OPT=ADMIN?{dcpage:!!(SET.glob&&SET.glob.dcpage)}:(d.opt||{});
- vehicles=d.cars.map(function(c){var ph=c.ph||{},p={};for(var n in COL)if(ph[COL[n]])p[n]=th(ph[COL[n]]);
+ /* only cars whose photos the admin sent to the Catalog ("✓ รูปขึ้น Catalog แล้ว"); the admin can switch to every car to edit year / price */
+ var list=d.cars.filter(function(c){if(ADMIN)return SHOWALL||!!c.ins;return d.apOnly?true:Object.keys(c.ph||{}).length>0});
+ vehicles=list.map(function(c){var ph=c.ph||{},p={};for(var n in COL)if(ph[COL[n]])p[n]=th(ph[COL[n]]);
   return{plate:c.pl,dc:dcn[c.dc]||String(c.dc),zone:zn[c.dc]||'อื่นๆ',type:TYMAP[c.ty]||c.ty,year:c.yr||'',price:c.pr||'',photos:p,_ph:ph,_c:c}});
  navDC();
  buildAll();if(document.getElementById('detView').style.display!=='none'&&window._fpxOpen)openDetail(window._fpxOpen)}
@@ -63,9 +65,9 @@ async function load(){loading(true);try{var d;
 /* ---------- viewer / admin ---------- */
 function header(){var r=document.querySelector('.hdr-right');if(!r)return;var old=document.getElementById('fpxHdr');if(old)old.remove();
  var w=document.createElement('span');w.id='fpxHdr';w.style.display='contents';
- w.innerHTML=ADMIN?'<span class="fpx-chip">ผู้ดูแล</span><button class="hbtn" id="fpxSetBtn" type="button">ตั้งค่าการแสดงผล</button><button class="hbtn" id="fpxYpBtn" type="button">นำเข้าปี / ราคา</button><input type="file" id="fpxYp" accept=".xlsx,.xls,.csv" hidden><button class="hbtn" id="fpxOut" type="button">ออก</button>':'';
+ w.innerHTML=ADMIN?'<span class="fpx-chip">ผู้ดูแล</span><button class="hbtn" id="fpxAllBtn" type="button" title="ผู้ชมเห็นเฉพาะรถที่รูปขึ้น Catalog แล้วเสมอ">'+(SHOWALL?'กำลังแสดง: ทุกคัน':'กำลังแสดง: เฉพาะรูปขึ้นแล้ว')+'</button><button class="hbtn" id="fpxSetBtn" type="button">ตั้งค่าการแสดงผล</button><button class="hbtn" id="fpxYpBtn" type="button">นำเข้าปี / ราคา</button><input type="file" id="fpxYp" accept=".xlsx,.xls,.csv" hidden><button class="hbtn" id="fpxOut" type="button">ออก</button>':'';
  r.insertBefore(w,r.firstChild);
- if(ADMIN){document.getElementById('fpxSetBtn').onclick=globalModal;document.getElementById('fpxYpBtn').onclick=function(){document.getElementById('fpxYp').click()};document.getElementById('fpxYp').onchange=importYP;document.getElementById('fpxOut').onclick=logout}}
+ if(ADMIN){document.getElementById('fpxAllBtn').onclick=function(){SHOWALL=!SHOWALL;header();build(RAW);toast(SHOWALL?'แสดงรถทุกคัน (เฉพาะแอดมิน) · ผู้ชมยังเห็นเฉพาะรถที่รูปขึ้นแล้ว':'แสดงเฉพาะรถที่รูปขึ้น Catalog แล้ว','info')};document.getElementById('fpxSetBtn').onclick=globalModal;document.getElementById('fpxYpBtn').onclick=function(){document.getElementById('fpxYp').click()};document.getElementById('fpxYp').onchange=importYP;document.getElementById('fpxOut').onclick=logout}}
 function logout(){try{sessionStorage.removeItem('fpc-admin-key')}catch(e){}KEY=null;ADMIN=false;history.replaceState(null,'',location.pathname);document.body.classList.remove('fpc-admin');document.body.classList.add('fpc-view');header();load()}
 function askKey(err){var m=document.createElement('div');m.className='modal-bg on';m.id='fpxLogin';
  m.innerHTML='<div class="modal"><div class="modal-title">ผู้ดูแลระบบ</div>'+(err?'<p style="color:var(--rd);margin:0 0 10px">'+h(err)+'</p>':'')+'<div class="fg"><label for="fpxKey">รหัสผู้ดูแล (ADMIN_KEY ของระบบตรวจรถ)</label><input class="fi" type="password" id="fpxKey" autocomplete="current-password"></div><div class="modal-actions"><button class="mbtn cancel" id="fpxNo" type="button">ดูแบบผู้ชม</button><button class="mbtn ok" id="fpxGo" type="button">เข้าสู่ระบบ</button></div></div>';
@@ -126,7 +128,7 @@ async function importYP(e){var f=e.target.files[0];e.target.value='';if(!f)retur
   var wb=XLSX.read(await f.arrayBuffer()),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
   var hi=rows.findIndex(function(r){return r.some(function(c){return/ทะเบียน/.test(c)})});if(hi<0)throw new Error('ไม่พบหัวคอลัมน์ "ทะเบียน"');
   var hd=rows[hi].map(String),ci=hd.findIndex(function(c){return/ทะเบียน/.test(c)}),yi=hd.findIndex(function(c){return/ปี/.test(c)}),pi=hd.findIndex(function(c){return/ราคา/.test(c)});
-  var known={},o={},n=0,miss=[];vehicles.forEach(function(v){known[v.plate.replace(/\s/g,'')]=v.plate});
+  var known={},o={},n=0,miss=[];(RAW.cars||[]).forEach(function(c){known[String(c.pl).replace(/\s/g,'')]=c.pl});
   rows.slice(hi+1).forEach(function(r){var raw=String(r[ci]||'').replace(/\s/g,'');if(!raw)return;var pl=known[raw];if(!pl){miss.push(raw);return}var x={};
    if(yi>=0&&String(r[yi]).trim())x.yr=String(r[yi]).trim();if(pi>=0&&String(r[pi]).trim())x.pr=String(r[pi]).replace(/[^\d.]/g,'');if(Object.keys(x).length){o[pl]=x;n++}});
   if(!n)throw new Error('ไม่พบข้อมูลปี/ราคาที่ตรงกับทะเบียนในระบบ');
